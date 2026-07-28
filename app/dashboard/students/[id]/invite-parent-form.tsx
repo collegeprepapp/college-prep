@@ -1,10 +1,13 @@
 'use client'
 
 import { useState } from 'react'
-import { createParentInvite } from './actions'
+import { createParentInvite } from '../../actions'
 
-export function GenerateInviteForm() {
-  const [studentId, setStudentId] = useState('')
+/**
+ * Replaces the old paste-a-UUID form: the student is fixed by the page, so the
+ * admin just clicks once and copies the link.
+ */
+export function InviteParentForm({ studentId }: { studentId: string }) {
   const [inviteUrl, setInviteUrl] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -28,21 +31,12 @@ export function GenerateInviteForm() {
 
   return (
     <section className="rounded-lg border border-black/10 p-5 dark:border-white/15">
-      <h2 className="text-lg font-medium">Invite a parent</h2>
+      <h3 className="text-base font-medium">Invite a parent</h3>
       <p className="mt-1 text-xs opacity-60">
-        Temporary: student picker UI coming later. For now, paste a student
-        UUID from the Supabase table editor.
+        Generates a one-time link for this student.
       </p>
 
-      <form onSubmit={handleSubmit} className="mt-4 flex flex-wrap gap-2">
-        <input
-          type="text"
-          value={studentId}
-          onChange={(event) => setStudentId(event.target.value)}
-          placeholder="Student UUID"
-          required
-          className="min-w-72 flex-1 rounded-md border border-black/15 bg-transparent px-3 py-2 font-mono text-sm outline-none focus:border-black/40 dark:border-white/20 dark:focus:border-white/50"
-        />
+      <form onSubmit={handleSubmit} className="mt-4">
         <button
           type="submit"
           disabled={isSubmitting}
@@ -63,10 +57,7 @@ export function GenerateInviteForm() {
 
       {inviteUrl && (
         <div className="mt-4">
-          <label
-            htmlFor="invite-url"
-            className="text-sm font-medium"
-          >
+          <label htmlFor="invite-url" className="text-sm font-medium">
             Invite link — send this to the parent
           </label>
           <input

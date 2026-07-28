@@ -1,7 +1,7 @@
+import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { SignOutButton } from './sign-out-button'
-import { GenerateInviteForm } from './generate-invite-form'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -42,7 +42,12 @@ export default async function DashboardPage() {
         </p>
       )}
 
-      <GenerateInviteForm />
+      <Link
+        href="/dashboard/students"
+        className="self-start rounded-md border border-black/15 px-4 py-2 text-sm font-medium transition-opacity hover:opacity-70 dark:border-white/20"
+      >
+        View Students
+      </Link>
     </main>
   )
 }
