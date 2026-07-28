@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { SignOutButton } from './sign-out-button'
+import { GenerateInviteForm } from './generate-invite-form'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -40,6 +41,8 @@ export default async function DashboardPage() {
           Could not load profile: {error.message}
         </p>
       )}
+
+      <GenerateInviteForm />
     </main>
   )
 }
