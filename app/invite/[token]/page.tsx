@@ -67,7 +67,7 @@ export default async function InvitePage({
           Create an account to continue.
         </p>
 
-        <SignupForm token={token} />
+        <SignupForm token={token} studentFirstName={student.first_name} />
       </div>
     </main>
   )
