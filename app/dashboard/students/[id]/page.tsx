@@ -1,11 +1,14 @@
 import Link from 'next/link'
 import { getViewer, isAdminRole } from '../access'
-import { InviteParentForm } from './invite-parent-form'
+import {
+  StudentDetailTabs,
+  type ParentLinkRow,
+} from './student-detail-tabs'
 
 // Note: every column on parent_student_links_safe is typed nullable. Postgres
 // does not carry NOT NULL through a view definition, so the generator cannot
-// know better. The values are non-null in practice, but the render path below
-// handles null anyway.
+// know better. The values are non-null in practice, but the render path handles
+// null anyway.
 
 // The student list is admin-only, so a student viewing their own record gets
 // sent back to the dashboard instead.
@@ -29,15 +32,6 @@ function Shell({
       </div>
       {children}
     </main>
-  )
-}
-
-function Field({ label, value }: { label: string; value: React.ReactNode }) {
-  return (
-    <div>
-      <dt className="text-xs uppercase tracking-wide opacity-60">{label}</dt>
-      <dd className="mt-0.5 text-sm">{value}</dd>
-    </div>
   )
 }
 
@@ -114,67 +108,35 @@ export default async function StudentDetailPage({
     }
   }
 
+  // Flattened here rather than passing the Map across the server/client
+  // boundary, so the client component gets plain rows it can render directly.
+  const parentLinkRows: ParentLinkRow[] = parentLinks.map((link) => ({
+    id: link.id,
+    status: link.status,
+    parentName: link.parent_profile_id
+      ? (parentNames.get(link.parent_profile_id) ?? null)
+      : null,
+  }))
+
   return (
     <Shell isAdmin={isAdmin}>
-      <div>
-        <h2 className="text-lg font-medium">
-          {student.first_name} {student.last_name}
-        </h2>
-      </div>
+      <h2 className="text-lg font-medium">
+        {student.first_name} {student.last_name}
+      </h2>
 
-      <dl className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <Field label="Graduation Year" value={student.graduation_year} />
-        <Field label="GPA" value={student.gpa ?? '—'} />
-        <Field label="Class Rank" value={student.class_rank ?? '—'} />
-        <Field label="Email" value={student.email ?? '—'} />
-      </dl>
-
-      <section>
-        <h3 className="text-base font-medium">Test Scores</h3>
-        {testScores.length === 0 ? (
-          <p className="mt-2 text-sm opacity-70">No test scores recorded.</p>
-        ) : (
-          <ul className="mt-2 flex flex-col gap-1.5">
-            {testScores.map((score) => (
-              <li key={score.id} className="text-sm">
-                <span className="font-medium">{score.test_type}</span>{' '}
-                {score.score}
-                <span className="opacity-60">
-                  {score.test_date ? ` — ${score.test_date}` : ''}
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-
-      <section>
-        <h3 className="text-base font-medium">Parent Links</h3>
-        {parentLinks.length === 0 ? (
-          <p className="mt-2 text-sm opacity-70">No parent invites yet.</p>
-        ) : (
-          <ul className="mt-2 flex flex-col gap-1.5">
-            {parentLinks.map((link, index) => (
-              <li key={link.id ?? index} className="text-sm">
-                <span className="font-medium capitalize">
-                  {link.status ?? 'unknown'}
-                </span>
-                {link.status === 'accepted' && (
-                  <span className="opacity-70">
-                    {' — '}
-                    {link.parent_profile_id
-                      ? (parentNames.get(link.parent_profile_id) ??
-                        'Unknown parent')
-                      : 'Unknown parent'}
-                  </span>
-                )}
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-
-      <InviteParentForm studentId={student.id} />
+      <StudentDetailTabs
+        student={{
+          id: student.id,
+          first_name: student.first_name,
+          last_name: student.last_name,
+          graduation_year: student.graduation_year,
+          gpa: student.gpa,
+          class_rank: student.class_rank,
+          email: student.email,
+        }}
+        testScores={testScores}
+        parentLinks={parentLinkRows}
+      />
     </Shell>
   )
 }
