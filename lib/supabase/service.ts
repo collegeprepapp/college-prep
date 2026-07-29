@@ -9,6 +9,8 @@ import 'server-only'
 
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 
+import type { Database } from './database.types'
+
 export function createServiceClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
   const secretKey = process.env.SUPABASE_SECRET_KEY
@@ -19,7 +21,7 @@ export function createServiceClient() {
     )
   }
 
-  return createSupabaseClient(url, secretKey, {
+  return createSupabaseClient<Database>(url, secretKey, {
     auth: {
       // No cookie/session handling: this client is never acting as a user.
       autoRefreshToken: false,

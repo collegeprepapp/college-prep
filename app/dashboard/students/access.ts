@@ -5,6 +5,23 @@ import { createClient } from '@/lib/supabase/server'
 
 export type Role = 'system_admin' | 'school_admin' | 'student' | 'parent'
 
+const ROLES: readonly Role[] = [
+  'system_admin',
+  'school_admin',
+  'student',
+  'parent',
+]
+
+/**
+ * profiles.role is plain `text` in the schema (a check constraint keeps it
+ * honest), so the generated types give us `string`. Narrow it here rather than
+ * casting: anything unrecognized becomes null, which every caller treats as no
+ * access. Fail closed.
+ */
+function toRole(value: string | null | undefined): Role | null {
+  return ROLES.includes(value as Role) ? (value as Role) : null
+}
+
 export type Viewer = {
   supabase: Awaited<ReturnType<typeof createClient>>
   userId: string
@@ -36,7 +53,7 @@ export async function getViewer(): Promise<Viewer> {
     .eq('id', user.id)
     .maybeSingle()
 
-  return { supabase, userId: user.id, role: profile?.role ?? null }
+  return { supabase, userId: user.id, role: toRole(profile?.role) }
 }
 
 export function isAdminRole(role: Role | null): boolean {

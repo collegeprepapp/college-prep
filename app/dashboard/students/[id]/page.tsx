@@ -2,20 +2,10 @@ import Link from 'next/link'
 import { getViewer, isAdminRole } from '../access'
 import { InviteParentForm } from './invite-parent-form'
 
-type TestScore = {
-  id: string
-  test_type: string
-  score: number
-  test_date: string | null
-}
-
-type ParentLink = {
-  id: string
-  status: string
-  parent_profile_id: string | null
-  created_at: string
-  accepted_at: string | null
-}
+// Note: every column on parent_student_links_safe is typed nullable. Postgres
+// does not carry NOT NULL through a view definition, so the generator cannot
+// know better. The values are non-null in practice, but the render path below
+// handles null anyway.
 
 // The student list is admin-only, so a student viewing their own record gets
 // sent back to the dashboard instead.
@@ -98,8 +88,10 @@ export default async function StudentDetailPage({
     .eq('student_id', id)
     .order('created_at', { ascending: false })
 
-  const testScores: TestScore[] = scores ?? []
-  const parentLinks: ParentLink[] = links ?? []
+  // Inferred, not annotated: the row types follow the exact select lists above,
+  // so adding or dropping a column updates these automatically.
+  const testScores = scores ?? []
+  const parentLinks = links ?? []
 
   // Resolve names for accepted links in one round trip.
   const parentIds = parentLinks
@@ -162,9 +154,11 @@ export default async function StudentDetailPage({
           <p className="mt-2 text-sm opacity-70">No parent invites yet.</p>
         ) : (
           <ul className="mt-2 flex flex-col gap-1.5">
-            {parentLinks.map((link) => (
-              <li key={link.id} className="text-sm">
-                <span className="font-medium capitalize">{link.status}</span>
+            {parentLinks.map((link, index) => (
+              <li key={link.id ?? index} className="text-sm">
+                <span className="font-medium capitalize">
+                  {link.status ?? 'unknown'}
+                </span>
                 {link.status === 'accepted' && (
                   <span className="opacity-70">
                     {' — '}

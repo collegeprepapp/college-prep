@@ -1,14 +1,6 @@
 import Link from 'next/link'
 import { requireAdmin } from './access'
 
-type StudentRow = {
-  id: string
-  first_name: string
-  last_name: string
-  graduation_year: number
-  gpa: number | string | null
-}
-
 export default async function StudentsPage() {
   const { supabase } = await requireAdmin()
 
@@ -20,7 +12,7 @@ export default async function StudentsPage() {
     .order('last_name', { ascending: true })
     .order('first_name', { ascending: true })
 
-  const rows: StudentRow[] = students ?? []
+  const rows = students ?? []
 
   return (
     <main className="flex flex-1 flex-col gap-6 p-10">
