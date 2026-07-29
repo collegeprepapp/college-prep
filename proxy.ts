@@ -1,6 +1,11 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
+// Route prefixes that require a signed-in user. This is an optimistic
+// pre-filter only — the pages under each prefix still do their own server-side
+// checks, which are the real authorization boundary.
+const PROTECTED_PREFIXES = ['/dashboard', '/portal']
+
 // Next.js 16 renamed the `middleware.ts` convention to `proxy.ts` (same
 // functionality, nodejs runtime only). See node_modules/next/dist/docs/
 // 01-app/02-guides/upgrading/version-16.md.
@@ -37,7 +42,11 @@ export async function proxy(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  if (!user && request.nextUrl.pathname.startsWith('/dashboard')) {
+  const isProtectedRoute = PROTECTED_PREFIXES.some((prefix) =>
+    request.nextUrl.pathname.startsWith(prefix)
+  )
+
+  if (!user && isProtectedRoute) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
 

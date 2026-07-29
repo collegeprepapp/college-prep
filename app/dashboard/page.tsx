@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { getPortalAccess } from '../portal/access'
 import { SignOutButton } from './sign-out-button'
 
 export default async function DashboardPage() {
@@ -21,6 +22,36 @@ export default async function DashboardPage() {
     .select('first_name, role')
     .eq('id', user.id)
     .single()
+
+  // The dashboard is the admin side of the app. Students and parents belong in
+  // /portal — but only if they actually have something to view there, since the
+  // portal bounces empty viewers back here. Checking first avoids a redirect
+  // loop; the 'empty' case falls through to the notice below.
+  if (profile?.role === 'student' || profile?.role === 'parent') {
+    const access = await getPortalAccess()
+
+    if (access.kind === 'portal') {
+      redirect('/portal')
+    }
+
+    return (
+      <main className="flex flex-1 flex-col gap-6 p-10">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-semibold tracking-tight">
+              Welcome, {profile.first_name ?? user.email}
+            </h1>
+            <p className="mt-1 text-sm opacity-70">
+              {profile.role === 'parent'
+                ? 'No students are linked to your account yet. Your school will send an invite when a record is ready.'
+                : 'Your student record is not set up yet. Your school will finish this shortly.'}
+            </p>
+          </div>
+          <SignOutButton />
+        </div>
+      </main>
+    )
+  }
 
   return (
     <main className="flex flex-1 flex-col gap-6 p-10">
