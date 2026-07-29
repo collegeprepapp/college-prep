@@ -136,6 +136,7 @@ export default async function StudentDetailPage({
         }}
         testScores={testScores}
         parentLinks={parentLinkRows}
+        canEdit={isAdmin || isOwnRecord}
       />
     </Shell>
   )

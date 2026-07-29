@@ -1,8 +1,9 @@
 import Link from 'next/link'
 import { requireAdmin } from './access'
+import { AddStudentForm } from './add-student-form'
 
 export default async function StudentsPage() {
-  const { supabase } = await requireAdmin()
+  const { supabase, schoolId } = await requireAdmin()
 
   // No school filter here on purpose: the RLS policies from 003 already scope
   // school_admin to their own school and let system_admin see every school.
@@ -27,6 +28,9 @@ export default async function StudentsPage() {
       </div>
 
       <h2 className="text-lg font-medium">Students</h2>
+
+      {/* requireAdmin() above means only admins ever reach this page. */}
+      <AddStudentForm schoolId={schoolId} />
 
       {error && (
         <p className="rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm">

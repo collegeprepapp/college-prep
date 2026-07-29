@@ -26,6 +26,9 @@ export type Viewer = {
   supabase: Awaited<ReturnType<typeof createClient>>
   userId: string
   role: Role | null
+  // Null for system_admin, which is global rather than scoped to one school
+  // (see the check constraint in migration 002).
+  schoolId: string | null
 }
 
 /**
@@ -49,11 +52,16 @@ export async function getViewer(): Promise<Viewer> {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('role')
+    .select('role, school_id')
     .eq('id', user.id)
     .maybeSingle()
 
-  return { supabase, userId: user.id, role: toRole(profile?.role) }
+  return {
+    supabase,
+    userId: user.id,
+    role: toRole(profile?.role),
+    schoolId: profile?.school_id ?? null,
+  }
 }
 
 export function isAdminRole(role: Role | null): boolean {
