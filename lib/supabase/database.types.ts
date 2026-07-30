@@ -14,6 +14,70 @@ export type Database = {
   }
   public: {
     Tables: {
+      assigned_tasks: {
+        Row: {
+          assigned_by: string | null
+          audience: string
+          completed: boolean
+          completed_at: string | null
+          created_at: string
+          description: string | null
+          icon: string | null
+          id: string
+          student_id: string
+          template_id: string | null
+          title: string
+        }
+        Insert: {
+          assigned_by?: string | null
+          audience?: string
+          completed?: boolean
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          student_id: string
+          template_id?: string | null
+          title: string
+        }
+        Update: {
+          assigned_by?: string | null
+          audience?: string
+          completed?: boolean
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          student_id?: string
+          template_id?: string | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assigned_tasks_assigned_by_fkey"
+            columns: ["assigned_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assigned_tasks_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assigned_tasks_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "timeline_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       parent_student_links: {
         Row: {
           accepted_at: string | null
@@ -210,6 +274,53 @@ export type Database = {
             columns: ["student_id"]
             isOneToOne: false
             referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      timeline_templates: {
+        Row: {
+          audience: string
+          created_at: string
+          description: string | null
+          grade_level: number
+          icon: string | null
+          id: string
+          school_id: string
+          season: string
+          sort_order: number
+          title: string
+        }
+        Insert: {
+          audience?: string
+          created_at?: string
+          description?: string | null
+          grade_level: number
+          icon?: string | null
+          id?: string
+          school_id: string
+          season: string
+          sort_order?: number
+          title: string
+        }
+        Update: {
+          audience?: string
+          created_at?: string
+          description?: string | null
+          grade_level?: number
+          icon?: string | null
+          id?: string
+          school_id?: string
+          season?: string
+          sort_order?: number
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "timeline_templates_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
             referencedColumns: ["id"]
           },
         ]
