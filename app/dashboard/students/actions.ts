@@ -3,79 +3,13 @@
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-
-/**
- * Raw form values. Everything arrives as a string because it comes from text
- * inputs; parseStudentFields below turns it into column-shaped values.
- */
-export type StudentFormInput = {
-  firstName: string
-  lastName: string
-  graduationYear: string
-  email: string
-  gpa: string
-  classRank: string
-}
+import {
+  parseStudentFields,
+  UUID_PATTERN,
+  type StudentFormInput,
+} from '@/lib/students/form'
 
 export type SaveStudentResult = { ok: true } | { ok: false; error: string }
-
-type StudentFields = {
-  first_name: string
-  last_name: string
-  graduation_year: number
-  email: string | null
-  gpa: number | null
-  class_rank: string | null
-}
-
-const UUID_PATTERN =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-
-// gpa is numeric(3,2): three total digits, two after the decimal point, so
-// anything at or above 10 overflows the column and Postgres raises 22003.
-const MAX_GPA = 9.99
-
-function parseStudentFields(
-  input: StudentFormInput
-): { ok: true; fields: StudentFields } | { ok: false; error: string } {
-  const firstName = input.firstName.trim()
-  const lastName = input.lastName.trim()
-
-  if (!firstName || !lastName) {
-    return { ok: false, error: 'First and last name are both required.' }
-  }
-
-  const graduationYear = Number(input.graduationYear.trim())
-
-  if (!Number.isInteger(graduationYear) || graduationYear < 1900 || graduationYear > 2100) {
-    return { ok: false, error: 'Enter a graduation year between 1900 and 2100.' }
-  }
-
-  const rawGpa = input.gpa.trim()
-  let gpa: number | null = null
-
-  if (rawGpa) {
-    const parsed = Number(rawGpa)
-
-    if (!Number.isFinite(parsed) || parsed < 0 || parsed > MAX_GPA) {
-      return { ok: false, error: `Enter a GPA between 0 and ${MAX_GPA}.` }
-    }
-
-    gpa = parsed
-  }
-
-  return {
-    ok: true,
-    fields: {
-      first_name: firstName,
-      last_name: lastName,
-      graduation_year: graduationYear,
-      email: input.email.trim() || null,
-      gpa,
-      class_rank: input.classRank.trim() || null,
-    },
-  }
-}
 
 /**
  * Creates a student and sends the caller to the new record.

@@ -2,13 +2,14 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { updateStudent, type StudentFormInput } from '../actions'
+import { updateStudent } from '../actions'
+import type { StudentFormInput } from '@/lib/students/form'
 import {
   ErrorBanner,
   PRIMARY_BUTTON_CLASS,
   SECONDARY_BUTTON_CLASS,
   StudentFormFields,
-} from '../student-form-fields'
+} from '@/components/student-form-fields'
 import { InviteParentForm } from './invite-parent-form'
 
 const TABS = [

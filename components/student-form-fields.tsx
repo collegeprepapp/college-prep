@@ -1,15 +1,7 @@
 'use client'
 
-import type { StudentFormInput } from './actions'
+import type { StudentFormInput } from '@/lib/students/form'
 
-export const EMPTY_STUDENT_FORM: StudentFormInput = {
-  firstName: '',
-  lastName: '',
-  graduationYear: '',
-  email: '',
-  gpa: '',
-  classRank: '',
-}
 
 export const INPUT_CLASS =
   'w-full rounded-md border border-black/15 bg-transparent px-3 py-2 text-sm outline-none focus:border-black/40 dark:border-white/20 dark:focus:border-white/50'

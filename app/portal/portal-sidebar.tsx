@@ -36,11 +36,16 @@ export function PortalSidebar({ students }: { students: PortalStudent[] }) {
     router.push(`/portal/${studentId}/${section}`)
   }
 
-  const timelineHref = activeStudentId
-    ? `/portal/${activeStudentId}/timeline`
-    : '/portal'
-
-  const isTimelineActive = pathname.endsWith('/timeline')
+  // Real sections, in sidebar order. Falls back to /portal before an id is
+  // known, so the links still point somewhere real while the redirect runs.
+  const sections = [
+    { segment: 'overview', label: 'My Info' },
+    { segment: 'timeline', label: 'College Timeline' },
+  ].map(({ segment, label }) => ({
+    label,
+    href: activeStudentId ? `/portal/${activeStudentId}/${segment}` : '/portal',
+    isActive: pathname.endsWith(`/${segment}`),
+  }))
 
   return (
     <aside className="flex w-56 shrink-0 flex-col gap-6 border-r border-black/10 p-6 dark:border-white/15">
@@ -71,16 +76,20 @@ export function PortalSidebar({ students }: { students: PortalStudent[] }) {
       )}
 
       <nav className="flex flex-col gap-1">
-        <Link
-          href={timelineHref}
-          className={
-            isTimelineActive
-              ? 'rounded-md bg-black/5 px-3 py-2 text-sm font-medium dark:bg-white/10'
-              : 'rounded-md px-3 py-2 text-sm opacity-70 transition-opacity hover:opacity-100'
-          }
-        >
-          College Timeline
-        </Link>
+        {sections.map((section) => (
+          <Link
+            key={section.label}
+            href={section.href}
+            aria-current={section.isActive ? 'page' : undefined}
+            className={
+              section.isActive
+                ? 'rounded-md bg-black/5 px-3 py-2 text-sm font-medium dark:bg-white/10'
+                : 'rounded-md px-3 py-2 text-sm opacity-70 transition-opacity hover:opacity-100'
+            }
+          >
+            {section.label}
+          </Link>
+        ))}
 
         {PLACEHOLDER_LINKS.map((label) => (
           <span

@@ -1,15 +1,18 @@
 'use client'
 
 import { useState } from 'react'
-import { createStudent, type StudentFormInput } from './actions'
+import { createStudent } from './actions'
 import {
   EMPTY_STUDENT_FORM,
+  type StudentFormInput,
+} from '@/lib/students/form'
+import {
   ErrorBanner,
   INPUT_CLASS,
   PRIMARY_BUTTON_CLASS,
   SECONDARY_BUTTON_CLASS,
   StudentFormFields,
-} from './student-form-fields'
+} from '@/components/student-form-fields'
 
 export function AddStudentForm({ schoolId }: { schoolId: string | null }) {
   const [isOpen, setIsOpen] = useState(false)
