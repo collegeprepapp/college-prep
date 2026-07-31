@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { requireAdmin } from './access'
+import { requireAdmin } from '../access'
 import { AddStudentForm } from './add-student-form'
 
 export default async function StudentsPage() {

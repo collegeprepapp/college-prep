@@ -73,12 +73,20 @@ export default async function DashboardPage() {
         </p>
       )}
 
-      <Link
-        href="/dashboard/students"
-        className="self-start rounded-md border border-black/15 px-4 py-2 text-sm font-medium transition-opacity hover:opacity-70 dark:border-white/20"
-      >
-        View Students
-      </Link>
+      <div className="flex flex-wrap gap-2">
+        <Link
+          href="/dashboard/students"
+          className="rounded-md border border-black/15 px-4 py-2 text-sm font-medium transition-opacity hover:opacity-70 dark:border-white/20"
+        >
+          View Students
+        </Link>
+        <Link
+          href="/dashboard/timeline"
+          className="rounded-md border border-black/15 px-4 py-2 text-sm font-medium transition-opacity hover:opacity-70 dark:border-white/20"
+        >
+          Timeline Templates
+        </Link>
+      </div>
     </main>
   )
 }

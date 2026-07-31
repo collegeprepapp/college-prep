@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { getViewer, isAdminRole } from '../access'
+import { getViewer, isAdminRole } from '../../access'
 import {
   StudentDetailTabs,
   type ParentLinkRow,
