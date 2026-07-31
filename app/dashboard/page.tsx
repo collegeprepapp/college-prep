@@ -1,74 +1,14 @@
-import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
-import { getPortalAccess } from '../portal/access'
-import { SignOutButton } from '@/components/sign-out-button'
+import { StudentList } from './students/student-list'
 
+/**
+ * /dashboard shows the student list — for now it is the same page as
+ * /dashboard/students, so both render the same component rather than one
+ * redirecting to the other.
+ *
+ * No requireAdmin() here: it redirects to /dashboard, which is this route.
+ * app/dashboard/layout.tsx gates the section and renders a notice instead of
+ * these children for anyone who is not an admin.
+ */
 export default async function DashboardPage() {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  // proxy.ts already redirects anonymous users, but a server-side check is the
-  // real authorization boundary — the proxy is only an optimistic pre-filter.
-  if (!user) {
-    redirect('/login')
-  }
-
-  const { data: profile, error } = await supabase
-    .from('profiles')
-    .select('first_name, role')
-    .eq('id', user.id)
-    .single()
-
-  // The dashboard is the admin side of the app. Students and parents belong in
-  // /portal — but only if they actually have something to view there, since the
-  // portal bounces empty viewers back here. Checking first avoids a redirect
-  // loop; the 'empty' case falls through to the notice below.
-  if (profile?.role === 'student' || profile?.role === 'parent') {
-    const access = await getPortalAccess()
-
-    if (access.kind === 'portal') {
-      redirect('/portal')
-    }
-
-    return (
-      <main className="flex flex-1 flex-col gap-6 p-10">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight">
-              Welcome, {profile.first_name ?? user.email}
-            </h1>
-            <p className="mt-1 text-sm opacity-70">
-              {profile.role === 'parent'
-                ? 'No students are linked to your account yet. Your school will send an invite when a record is ready.'
-                : 'Your student record is not set up yet. Your school will finish this shortly.'}
-            </p>
-          </div>
-          <SignOutButton />
-        </div>
-      </main>
-    )
-  }
-
-  // Branding, nav, and sign-out now come from app/dashboard/layout.tsx.
-  return (
-    <main className="flex flex-1 flex-col gap-6 p-10">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">
-          Welcome, {profile?.first_name ?? user.email}
-        </h1>
-        <p className="mt-1 text-sm opacity-70">
-          Role: {profile?.role ?? 'unknown'}
-        </p>
-      </div>
-
-      {error && (
-        <p className="rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm">
-          Could not load profile: {error.message}
-        </p>
-      )}
-    </main>
-  )
+  return <StudentList />
 }
