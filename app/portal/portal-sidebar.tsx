@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { useParams, usePathname, useRouter } from 'next/navigation'
+import { SignOutButton } from '@/components/sign-out-button'
 import type { PortalStudent } from './access'
 
 // Only College Timeline has a page behind it so far. The rest render as inert
@@ -92,6 +93,11 @@ export function PortalSidebar({ students }: { students: PortalStudent[] }) {
           </span>
         ))}
       </nav>
+
+      {/* mt-auto pins this to the bottom of the sidebar, below the nav. */}
+      <div className="mt-auto">
+        <SignOutButton className="w-full rounded-md border border-black/15 px-3 py-2 text-sm font-medium transition-opacity hover:opacity-70 disabled:opacity-50 dark:border-white/20" />
+      </div>
     </aside>
   )
 }

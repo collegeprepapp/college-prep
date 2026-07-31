@@ -1,5 +1,4 @@
-import Link from 'next/link'
-import { getViewer, isAdminRole } from '../../access'
+import { requireAdmin } from '../../access'
 import {
   StudentDetailTabs,
   type ParentLinkRow,
@@ -10,29 +9,9 @@ import {
 // know better. The values are non-null in practice, but the render path handles
 // null anyway.
 
-// The student list is admin-only, so a student viewing their own record gets
-// sent back to the dashboard instead.
-function Shell({
-  isAdmin,
-  children,
-}: {
-  isAdmin: boolean
-  children: React.ReactNode
-}) {
-  return (
-    <main className="flex flex-1 flex-col gap-6 p-10">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">College Prep</h1>
-        <Link
-          href={isAdmin ? '/dashboard/students' : '/dashboard'}
-          className="mt-1 inline-block text-sm underline opacity-70 hover:opacity-100"
-        >
-          {isAdmin ? '← Back to students' : '← Back to dashboard'}
-        </Link>
-      </div>
-      {children}
-    </main>
-  )
+// Branding, nav, and sign-out come from app/dashboard/layout.tsx.
+function Shell({ children }: { children: React.ReactNode }) {
+  return <main className="flex flex-1 flex-col gap-6 p-10">{children}</main>
 }
 
 export default async function StudentDetailPage({
@@ -41,28 +20,23 @@ export default async function StudentDetailPage({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-  const { supabase, userId, role } = await getViewer()
-  const isAdmin = isAdminRole(role)
+
+  // Admin-only page. app/dashboard/layout.tsx already gates the whole section;
+  // this repeats the check so the page is not relying on a parent layout for
+  // authorization. Students and parents read their own records via /portal.
+  const { supabase } = await requireAdmin()
 
   // An admin from another school gets zero rows back from RLS rather than an
   // error, which is indistinguishable from a bad id — both land on "not found".
   const { data: student } = await supabase
     .from('students')
-    .select(
-      'id, first_name, last_name, graduation_year, gpa, class_rank, email, profile_id'
-    )
+    .select('id, first_name, last_name, graduation_year, gpa, class_rank, email')
     .eq('id', id)
     .maybeSingle()
 
-  // Admins see any student their RLS scope allows; a student sees only the
-  // record linked to their own profile. Everyone else — parents included, even
-  // though RLS would let a linked parent read the row — gets the same message,
-  // so a refusal never reveals whether the student exists.
-  const isOwnRecord = role === 'student' && student?.profile_id === userId
-
-  if (!student || (!isAdmin && !isOwnRecord)) {
+  if (!student) {
     return (
-      <Shell isAdmin={isAdmin}>
+      <Shell>
         <p className="text-sm opacity-70">Student not found.</p>
       </Shell>
     )
@@ -119,10 +93,10 @@ export default async function StudentDetailPage({
   }))
 
   return (
-    <Shell isAdmin={isAdmin}>
-      <h2 className="text-lg font-medium">
+    <Shell>
+      <h1 className="text-2xl font-semibold tracking-tight">
         {student.first_name} {student.last_name}
-      </h2>
+      </h1>
 
       <StudentDetailTabs
         student={{
@@ -136,7 +110,8 @@ export default async function StudentDetailPage({
         }}
         testScores={testScores}
         parentLinks={parentLinkRows}
-        canEdit={isAdmin || isOwnRecord}
+        // Everyone who reaches this page is an admin.
+        canEdit
       />
     </Shell>
   )

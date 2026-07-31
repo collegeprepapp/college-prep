@@ -1,8 +1,7 @@
-import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { getPortalAccess } from '../portal/access'
-import { SignOutButton } from './sign-out-button'
+import { SignOutButton } from '@/components/sign-out-button'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -53,18 +52,16 @@ export default async function DashboardPage() {
     )
   }
 
+  // Branding, nav, and sign-out now come from app/dashboard/layout.tsx.
   return (
     <main className="flex flex-1 flex-col gap-6 p-10">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">
-            Welcome, {profile?.first_name ?? user.email}
-          </h1>
-          <p className="mt-1 text-sm opacity-70">
-            Role: {profile?.role ?? 'unknown'}
-          </p>
-        </div>
-        <SignOutButton />
+      <div>
+        <h1 className="text-2xl font-semibold tracking-tight">
+          Welcome, {profile?.first_name ?? user.email}
+        </h1>
+        <p className="mt-1 text-sm opacity-70">
+          Role: {profile?.role ?? 'unknown'}
+        </p>
       </div>
 
       {error && (
@@ -72,21 +69,6 @@ export default async function DashboardPage() {
           Could not load profile: {error.message}
         </p>
       )}
-
-      <div className="flex flex-wrap gap-2">
-        <Link
-          href="/dashboard/students"
-          className="rounded-md border border-black/15 px-4 py-2 text-sm font-medium transition-opacity hover:opacity-70 dark:border-white/20"
-        >
-          View Students
-        </Link>
-        <Link
-          href="/dashboard/timeline"
-          className="rounded-md border border-black/15 px-4 py-2 text-sm font-medium transition-opacity hover:opacity-70 dark:border-white/20"
-        >
-          Timeline Templates
-        </Link>
-      </div>
     </main>
   )
 }

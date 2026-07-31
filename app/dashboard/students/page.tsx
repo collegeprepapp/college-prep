@@ -1,3 +1,4 @@
+
 import Link from 'next/link'
 import { requireAdmin } from '../access'
 import { AddStudentForm } from './add-student-form'
@@ -17,17 +18,7 @@ export default async function StudentsPage() {
 
   return (
     <main className="flex flex-1 flex-col gap-6 p-10">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">College Prep</h1>
-        <Link
-          href="/dashboard"
-          className="mt-1 inline-block text-sm underline opacity-70 hover:opacity-100"
-        >
-          ← Back to dashboard
-        </Link>
-      </div>
-
-      <h2 className="text-lg font-medium">Students</h2>
+      <h1 className="text-2xl font-semibold tracking-tight">Students</h1>
 
       {/* requireAdmin() above means only admins ever reach this page. */}
       <AddStudentForm schoolId={schoolId} />

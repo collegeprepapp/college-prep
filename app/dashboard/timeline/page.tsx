@@ -1,4 +1,3 @@
-import Link from 'next/link'
 import { requireAdmin } from '../access'
 import { AddTemplateForm } from './add-template-form'
 import { SEASONS } from './constants'
@@ -60,17 +59,9 @@ export default async function TimelineTemplatesPage() {
   return (
     <main className="flex flex-1 flex-col gap-6 p-10">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">College Prep</h1>
-        <Link
-          href="/dashboard"
-          className="mt-1 inline-block text-sm underline opacity-70 hover:opacity-100"
-        >
-          ← Back to dashboard
-        </Link>
-      </div>
-
-      <div>
-        <h2 className="text-lg font-medium">Timeline Templates</h2>
+        <h1 className="text-2xl font-semibold tracking-tight">
+          Timeline Templates
+        </h1>
         <p className="mt-1 text-sm opacity-70">
           Steps here appear on a student&apos;s timeline once they reach the
           matching grade.

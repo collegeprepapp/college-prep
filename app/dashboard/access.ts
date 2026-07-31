@@ -1,5 +1,6 @@
 import 'server-only'
 
+import { cache } from 'react'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 
@@ -39,7 +40,7 @@ export type Viewer = {
  * are what actually scope the data. The returned client is session-bound so
  * callers keep that scoping instead of reaching for the service role.
  */
-export async function getViewer(): Promise<Viewer> {
+export const getViewer = cache(async (): Promise<Viewer> => {
   const supabase = await createClient()
 
   const {
@@ -62,7 +63,7 @@ export async function getViewer(): Promise<Viewer> {
     role: toRole(profile?.role),
     schoolId: profile?.school_id ?? null,
   }
-}
+})
 
 export function isAdminRole(role: Role | null): boolean {
   return role === 'system_admin' || role === 'school_admin'
