@@ -4,7 +4,7 @@ import { SEASONS } from './constants'
 import { TemplateRow, type TemplateRowData } from './template-row'
 
 export default async function TimelineTemplatesPage() {
-  const { supabase, schoolId } = await requireAdmin()
+  const { supabase, schoolId, role } = await requireAdmin()
 
   // No school filter here on purpose: the select policy from 007 already scopes
   // school_admin to their own school and lets system_admin see every school.
@@ -14,6 +14,14 @@ export default async function TimelineTemplatesPage() {
     .order('grade_level', { ascending: true })
     .order('sort_order', { ascending: true })
     .order('title', { ascending: true })
+
+  // RLS scopes this: school_admin sees only their own school, system_admin
+  // sees all. Empty means migration 009's select policy is not applied yet, and
+  // SchoolField falls back to a raw UUID input.
+  const { data: schools } = await supabase
+    .from('schools')
+    .select('id, name')
+    .order('name', { ascending: true })
 
   const templates = templateRows ?? []
 
@@ -74,7 +82,11 @@ export default async function TimelineTemplatesPage() {
         </p>
       )}
 
-      <AddTemplateForm schoolId={schoolId} />
+      <AddTemplateForm
+        schoolId={schoolId}
+        schools={schools ?? []}
+        role={role}
+      />
 
       {!error && templates.length === 0 && (
         <p className="text-sm opacity-70">No templates yet.</p>

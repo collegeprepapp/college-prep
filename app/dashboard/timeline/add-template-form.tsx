@@ -6,26 +6,34 @@ import { createTemplate } from './actions'
 import { EMPTY_TEMPLATE_FORM, type TemplateFormInput } from './constants'
 import {
   ErrorBanner,
-  INPUT_CLASS,
   PRIMARY_BUTTON_CLASS,
   SECONDARY_BUTTON_CLASS,
   TemplateFormFields,
 } from './template-form-fields'
+import { SchoolField, type SchoolOption } from '@/components/school-field'
 
-export function AddTemplateForm({ schoolId }: { schoolId: string | null }) {
+export function AddTemplateForm({
+  schoolId,
+  schools,
+  role,
+}: {
+  schoolId: string | null
+  schools: SchoolOption[]
+  role: string | null
+}) {
   const router = useRouter()
   const [isOpen, setIsOpen] = useState(false)
   const [values, setValues] = useState<TemplateFormInput>(EMPTY_TEMPLATE_FORM)
-  // Only shown when the viewer has no school of their own (system_admin). The
-  // schools table has no select policy, so there is no list to pick from.
-  const [manualSchoolId, setManualSchoolId] = useState('')
+  // Only used by system_admin, who always picks. Seeded from their own
+  // school_id when they have one, so the common case is preselected.
+  const [pickedSchoolId, setPickedSchoolId] = useState(schoolId ?? '')
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   function close() {
     setIsOpen(false)
     setValues(EMPTY_TEMPLATE_FORM)
-    setManualSchoolId('')
+    setPickedSchoolId(schoolId ?? '')
     setError(null)
   }
 
@@ -34,7 +42,12 @@ export function AddTemplateForm({ schoolId }: { schoolId: string | null }) {
     setError(null)
     setIsSubmitting(true)
 
-    const result = await createTemplate(schoolId ?? manualSchoolId, values)
+    // system_admin submits whatever they picked; everyone else is pinned to
+    // their own school.
+    const chosenSchoolId =
+      role === 'system_admin' ? pickedSchoolId : (schoolId ?? '')
+
+    const result = await createTemplate(chosenSchoolId, values)
     setIsSubmitting(false)
 
     if (!result.ok) {
@@ -70,25 +83,14 @@ export function AddTemplateForm({ schoolId }: { schoolId: string | null }) {
           disabled={isSubmitting}
         />
 
-        {schoolId === null && (
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor="add-template-school" className="text-sm font-medium">
-              School ID
-            </label>
-            <input
-              id="add-template-school"
-              type="text"
-              required
-              disabled={isSubmitting}
-              value={manualSchoolId}
-              onChange={(event) => setManualSchoolId(event.target.value)}
-              className={`${INPUT_CLASS} font-mono`}
-            />
-            <p className="text-xs opacity-60">
-              Your account is not tied to one school, so paste the school UUID.
-            </p>
-          </div>
-        )}
+        <SchoolField
+          idPrefix="add-template"
+          role={role}
+          schools={schools}
+          value={pickedSchoolId}
+          onChange={setPickedSchoolId}
+          disabled={isSubmitting}
+        />
 
         {error && <ErrorBanner message={error} />}
 

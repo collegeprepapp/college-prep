@@ -18,7 +18,7 @@ import { StudentTable } from './student-table'
  * since filtering happens in the browser against the already-loaded roster.
  */
 export async function StudentList() {
-  const { supabase, schoolId } = await getViewer()
+  const { supabase, schoolId, role } = await getViewer()
 
   // No school filter here on purpose: the RLS policies from 003 already scope
   // school_admin to their own school and let system_admin see every school.
@@ -28,13 +28,25 @@ export async function StudentList() {
     .order('last_name', { ascending: true })
     .order('first_name', { ascending: true })
 
+  // RLS scopes this: school_admin sees only their own school, system_admin
+  // sees all. Empty means migration 009's select policy is not applied yet, and
+  // SchoolField falls back to a raw UUID input.
+  const { data: schools } = await supabase
+    .from('schools')
+    .select('id, name')
+    .order('name', { ascending: true })
+
   const rows = students ?? []
 
   return (
     <main className="flex flex-1 flex-col gap-6 p-10">
       <h1 className="text-2xl font-semibold tracking-tight">Students</h1>
 
-      <AddStudentForm schoolId={schoolId} />
+      <AddStudentForm
+        schoolId={schoolId}
+        schools={schools ?? []}
+        role={role}
+      />
 
       {error && (
         <p className="rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm">
