@@ -130,27 +130,55 @@ export default async function StudentDetailPage({
 
   const { data: applicationRows } = await supabase
     .from('college_applications')
-    .select('id, school_name, status, deadline, notes')
+    .select(
+      'id, school_name, status, deadline, notes, date_toured, goal_completion_date, requires_common_app_essay, requires_supplemental_essay, recommendations_needed, recommendation_notes, website_link, scholarship_info_link, resume_link, other_links, admission_rep_name, admission_rep_email, scholarship_amount'
+    )
     .eq('student_id', id)
-    .order('deadline', { ascending: true, nullsFirst: false })
     .order('school_name', { ascending: true })
 
-  // deadline is a plain date ('YYYY-MM-DD'). Formatting it with new Date() in
-  // the browser would shift it a day in negative-offset timezones, since the
-  // string parses as UTC midnight — so it is formatted here, pinned to UTC.
-  const applications: ApplicationRow[] = (applicationRows ?? []).map((row) => ({
-    id: row.id,
-    schoolName: row.school_name,
-    status: row.status,
-    deadline: row.deadline ?? '',
-    deadlineLabel: row.deadline
-      ? new Date(`${row.deadline}T00:00:00Z`).toLocaleDateString('en-US', {
+  // Dates are plain 'YYYY-MM-DD'. Formatting them with new Date() in the
+  // browser shifts them a day in negative-offset timezones, since the string
+  // parses as UTC midnight — so they are formatted here, pinned to UTC. The raw
+  // value travels alongside for the date inputs and for sorting.
+  const formatDate = (value: string | null) =>
+    value
+      ? new Date(`${value}T00:00:00Z`).toLocaleDateString('en-US', {
           timeZone: 'UTC',
           year: 'numeric',
           month: 'short',
           day: 'numeric',
         })
-      : '',
+      : ''
+
+  const currency = new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    maximumFractionDigits: 0,
+  })
+
+  const applications: ApplicationRow[] = (applicationRows ?? []).map((row) => ({
+    id: row.id,
+    schoolName: row.school_name,
+    status: row.status,
+    deadline: row.deadline ?? '',
+    deadlineLabel: formatDate(row.deadline),
+    dateToured: row.date_toured ?? '',
+    dateTouredLabel: formatDate(row.date_toured),
+    goalCompletionDate: row.goal_completion_date ?? '',
+    goalCompletionDateLabel: formatDate(row.goal_completion_date),
+    requiresCommonAppEssay: row.requires_common_app_essay,
+    requiresSupplementalEssay: row.requires_supplemental_essay,
+    recommendationsNeeded: row.recommendations_needed,
+    recommendationNotes: row.recommendation_notes ?? '',
+    websiteLink: row.website_link ?? '',
+    scholarshipInfoLink: row.scholarship_info_link ?? '',
+    resumeLink: row.resume_link ?? '',
+    otherLinks: row.other_links ?? '',
+    admissionRepName: row.admission_rep_name ?? '',
+    admissionRepEmail: row.admission_rep_email ?? '',
+    scholarshipAmount: row.scholarship_amount,
+    scholarshipAmountLabel:
+      row.scholarship_amount === null ? '' : currency.format(row.scholarship_amount),
     notes: row.notes ?? '',
   }))
 

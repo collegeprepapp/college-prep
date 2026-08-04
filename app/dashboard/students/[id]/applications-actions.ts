@@ -4,23 +4,32 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { isApplicationStatus } from '@/lib/college-applications/status'
 import { UUID_PATTERN } from '@/lib/students/form'
+import type { ApplicationFormInput } from '@/lib/college-applications/form'
 
 export type ApplicationResult = { ok: true } | { ok: false; error: string }
-
-/** Raw form values; everything arrives as a string from inputs. */
-export type ApplicationFormInput = {
-  schoolName: string
-  status: string
-  /** 'YYYY-MM-DD' from a date input, or '' for none. */
-  deadline: string
-  notes: string
-}
 
 type ApplicationFields = {
   school_name: string
   status: string
   deadline: string | null
+  date_toured: string | null
+  goal_completion_date: string | null
+  requires_common_app_essay: boolean
+  requires_supplemental_essay: boolean
+  recommendations_needed: number | null
+  recommendation_notes: string | null
+  website_link: string | null
+  scholarship_info_link: string | null
+  resume_link: string | null
+  other_links: string | null
+  admission_rep_name: string | null
+  admission_rep_email: string | null
+  scholarship_amount: number | null
   notes: string | null
+}
+
+function optional(value: string): string | null {
+  return value.trim() || null
 }
 
 function parseApplication(
@@ -32,10 +41,41 @@ function parseApplication(
     return { ok: false, error: 'A school name is required.' }
   }
 
-  // Mirrors the check constraint from 011, so a bad value comes back as a
+  // Mirrors the check constraint from 011/012, so a bad value comes back as a
   // message rather than a Postgres error.
   if (!isApplicationStatus(input.status)) {
     return { ok: false, error: 'Pick a valid status.' }
+  }
+
+  const rawRecommendations = input.recommendationsNeeded.trim()
+  let recommendationsNeeded: number | null = null
+
+  if (rawRecommendations) {
+    const parsed = Number(rawRecommendations)
+
+    if (!Number.isInteger(parsed) || parsed < 0 || parsed > 99) {
+      return {
+        ok: false,
+        error: 'Recommendations needed must be a whole number between 0 and 99.',
+      }
+    }
+
+    recommendationsNeeded = parsed
+  }
+
+  const rawAmount = input.scholarshipAmount.trim()
+  let scholarshipAmount: number | null = null
+
+  if (rawAmount) {
+    // Tolerate a pasted "$12,500" rather than rejecting it.
+    const cleaned = rawAmount.replace(/[$,\s]/g, '')
+    const parsed = Number(cleaned)
+
+    if (!Number.isFinite(parsed) || parsed < 0) {
+      return { ok: false, error: 'Scholarship amount must be a positive number.' }
+    }
+
+    scholarshipAmount = parsed
   }
 
   return {
@@ -43,8 +83,21 @@ function parseApplication(
     fields: {
       school_name: schoolName,
       status: input.status,
-      deadline: input.deadline.trim() || null,
-      notes: input.notes.trim() || null,
+      deadline: optional(input.deadline),
+      date_toured: optional(input.dateToured),
+      goal_completion_date: optional(input.goalCompletionDate),
+      requires_common_app_essay: input.requiresCommonAppEssay,
+      requires_supplemental_essay: input.requiresSupplementalEssay,
+      recommendations_needed: recommendationsNeeded,
+      recommendation_notes: optional(input.recommendationNotes),
+      website_link: optional(input.websiteLink),
+      scholarship_info_link: optional(input.scholarshipInfoLink),
+      resume_link: optional(input.resumeLink),
+      other_links: optional(input.otherLinks),
+      admission_rep_name: optional(input.admissionRepName),
+      admission_rep_email: optional(input.admissionRepEmail),
+      scholarship_amount: scholarshipAmount,
+      notes: optional(input.notes),
     },
   }
 }
@@ -79,15 +132,13 @@ export async function createApplication(
     return { ok: false, error: 'You must be signed in.' }
   }
 
-  const { error } = await supabase
-    .from('college_applications')
-    .insert({
-      ...parsed.fields,
-      student_id: studentId.trim(),
-      // The insert policy permits only auth.uid() or null here, so this is a
-      // record rather than a claim.
-      added_by: user.id,
-    })
+  const { error } = await supabase.from('college_applications').insert({
+    ...parsed.fields,
+    student_id: studentId.trim(),
+    // The insert policy permits only auth.uid() or null here, so this is a
+    // record rather than a claim.
+    added_by: user.id,
+  })
 
   if (error) {
     console.error('createApplication: insert failed', error)
