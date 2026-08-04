@@ -16,8 +16,8 @@ import {
   DocsTab,
   EssaysTab,
   ScholarshipsTab,
-  SchoolsTab,
 } from './demo-tabs'
+import { SchoolsTab, type ApplicationRow } from './schools-tab'
 import { NotesTab, type NoteRow } from './notes-tab'
 import { InviteParentForm } from './invite-parent-form'
 
@@ -38,7 +38,6 @@ type Tab = (typeof TABS)[number]
 // Tabs backed by hardcoded demo data rather than the database — see
 // demo-tabs.tsx. Nothing in them reads from or writes to Supabase yet.
 const DEMO_TABS: Record<string, () => React.ReactElement> = {
-  Schools: SchoolsTab,
   Scholarships: ScholarshipsTab,
   Essays: EssaysTab,
   Activities: ActivitiesTab,
@@ -261,6 +260,7 @@ export function StudentDetailTabs({
   testScores,
   parentLinks,
   notes,
+  applications,
   studentId,
   viewerProfileId,
   canEdit,
@@ -269,6 +269,7 @@ export function StudentDetailTabs({
   testScores: TestScoreRow[]
   parentLinks: ParentLinkRow[]
   notes: NoteRow[]
+  applications: ApplicationRow[]
   studentId: string
   viewerProfileId: string
   // Admin, or the student viewing their own record — decided by the page's
@@ -308,6 +309,10 @@ export function StudentDetailTabs({
       <div role="tabpanel" aria-label={activeTab}>
         {activeTab === 'Overview' && (
           <OverviewTab student={student} canEdit={canEdit} />
+        )}
+
+        {activeTab === 'Schools' && (
+          <SchoolsTab applications={applications} studentId={studentId} />
         )}
 
         {activeTab === 'Notes' && (

@@ -9,11 +9,9 @@ import {
   DEMO_DOCS,
   DEMO_ESSAYS,
   DEMO_SCHOLARSHIPS,
-  DEMO_SCHOOLS,
   type ActivityCategory,
   type DemoDoc,
   type ScholarshipStatus,
-  type SchoolStatus,
 } from './demo-data'
 
 /**
@@ -70,52 +68,6 @@ const THEAD_ROW_CLASS =
 const TH_CLASS = 'py-2 pr-4 font-medium'
 const TD_CLASS = 'py-2 pr-4'
 const TR_CLASS = 'border-b border-black/5 dark:border-white/10'
-
-// ---------------------------------------------------------------------------
-// Schools
-// ---------------------------------------------------------------------------
-
-const SCHOOL_STATUS_TONE: Record<SchoolStatus, Tone> = {
-  Researching: 'neutral',
-  Touring: 'blue',
-  Applied: 'amber',
-  Accepted: 'green',
-  Committed: 'purple',
-}
-
-export function SchoolsTab() {
-  return (
-    <div className="flex flex-col gap-4">
-      <TabHeader title="Schools" action="Add School" />
-
-      <div className="overflow-x-auto">
-        <table className={TABLE_CLASS}>
-          <thead>
-            <tr className={THEAD_ROW_CLASS}>
-              <th className={TH_CLASS}>School</th>
-              <th className={TH_CLASS}>Status</th>
-              <th className={TH_CLASS}>Application Deadline</th>
-            </tr>
-          </thead>
-          <tbody>
-            {DEMO_SCHOOLS.map((school) => (
-              <tr key={school.id} className={TR_CLASS}>
-                <td className={`${TD_CLASS} font-medium`}>{school.name}</td>
-                <td className={TD_CLASS}>
-                  <Badge
-                    label={school.status}
-                    tone={SCHOOL_STATUS_TONE[school.status]}
-                  />
-                </td>
-                <td className={TD_CLASS}>{school.deadline}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  )
-}
 
 // ---------------------------------------------------------------------------
 // Scholarships

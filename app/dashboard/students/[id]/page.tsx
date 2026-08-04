@@ -1,5 +1,6 @@
 import { requireAdmin } from '../../access'
 import type { NoteRow } from './notes-tab'
+import type { ApplicationRow } from './schools-tab'
 import {
   StudentDetailTabs,
   type ParentLinkRow,
@@ -127,6 +128,32 @@ export default async function StudentDetailPage({
     visibility: note.visibility,
   }))
 
+  const { data: applicationRows } = await supabase
+    .from('college_applications')
+    .select('id, school_name, status, deadline, notes')
+    .eq('student_id', id)
+    .order('deadline', { ascending: true, nullsFirst: false })
+    .order('school_name', { ascending: true })
+
+  // deadline is a plain date ('YYYY-MM-DD'). Formatting it with new Date() in
+  // the browser would shift it a day in negative-offset timezones, since the
+  // string parses as UTC midnight — so it is formatted here, pinned to UTC.
+  const applications: ApplicationRow[] = (applicationRows ?? []).map((row) => ({
+    id: row.id,
+    schoolName: row.school_name,
+    status: row.status,
+    deadline: row.deadline ?? '',
+    deadlineLabel: row.deadline
+      ? new Date(`${row.deadline}T00:00:00Z`).toLocaleDateString('en-US', {
+          timeZone: 'UTC',
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+        })
+      : '',
+    notes: row.notes ?? '',
+  }))
+
   // Flattened here rather than passing the Map across the server/client
   // boundary, so the client component gets plain rows it can render directly.
   const parentLinkRows: ParentLinkRow[] = parentLinks.map((link) => ({
@@ -156,6 +183,7 @@ export default async function StudentDetailPage({
         testScores={testScores}
         parentLinks={parentLinkRows}
         notes={noteRowsForClient}
+        applications={applications}
         studentId={student.id}
         viewerProfileId={userId}
         // Everyone who reaches this page is an admin.

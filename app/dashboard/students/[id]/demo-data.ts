@@ -30,47 +30,6 @@ export const DEMO_TEST_SCORES: DemoTestScore[] = [
   { id: 'score-3', test_type: 'SAT', score: 1280, test_date: '2026-03-14' },
 ]
 
-export type SchoolStatus =
-  | 'Researching'
-  | 'Touring'
-  | 'Applied'
-  | 'Accepted'
-  | 'Committed'
-
-export type DemoSchool = {
-  id: string
-  name: string
-  status: SchoolStatus
-  deadline: string
-}
-
-export const DEMO_SCHOOLS: DemoSchool[] = [
-  {
-    id: 'school-1',
-    name: 'University of Georgia',
-    status: 'Applied',
-    deadline: 'Oct 15, 2026',
-  },
-  {
-    id: 'school-2',
-    name: 'Clemson University',
-    status: 'Touring',
-    deadline: 'Dec 1, 2026',
-  },
-  {
-    id: 'school-3',
-    name: 'Belmont University',
-    status: 'Accepted',
-    deadline: 'Nov 1, 2026',
-  },
-  {
-    id: 'school-4',
-    name: 'Auburn University',
-    status: 'Researching',
-    deadline: 'Feb 1, 2027',
-  },
-]
-
 export type ScholarshipStatus = 'Researching' | 'Applied' | 'Awarded' | 'Denied'
 
 export type DemoScholarship = {

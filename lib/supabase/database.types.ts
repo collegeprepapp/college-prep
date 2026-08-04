@@ -78,6 +78,96 @@ export type Database = {
           },
         ]
       }
+      college_applications: {
+        Row: {
+          added_by: string | null
+          admission_rep_email: string | null
+          admission_rep_name: string | null
+          created_at: string
+          date_toured: string | null
+          deadline: string | null
+          goal_completion_date: string | null
+          id: string
+          notes: string | null
+          other_links: string | null
+          recommendation_notes: string | null
+          recommendations_needed: number | null
+          requires_common_app_essay: boolean
+          requires_supplemental_essay: boolean
+          resume_link: string | null
+          scholarship_amount: number | null
+          scholarship_info_link: string | null
+          school_name: string
+          status: string
+          student_id: string
+          updated_at: string
+          website_link: string | null
+        }
+        Insert: {
+          added_by?: string | null
+          admission_rep_email?: string | null
+          admission_rep_name?: string | null
+          created_at?: string
+          date_toured?: string | null
+          deadline?: string | null
+          goal_completion_date?: string | null
+          id?: string
+          notes?: string | null
+          other_links?: string | null
+          recommendation_notes?: string | null
+          recommendations_needed?: number | null
+          requires_common_app_essay?: boolean
+          requires_supplemental_essay?: boolean
+          resume_link?: string | null
+          scholarship_amount?: number | null
+          scholarship_info_link?: string | null
+          school_name: string
+          status?: string
+          student_id: string
+          updated_at?: string
+          website_link?: string | null
+        }
+        Update: {
+          added_by?: string | null
+          admission_rep_email?: string | null
+          admission_rep_name?: string | null
+          created_at?: string
+          date_toured?: string | null
+          deadline?: string | null
+          goal_completion_date?: string | null
+          id?: string
+          notes?: string | null
+          other_links?: string | null
+          recommendation_notes?: string | null
+          recommendations_needed?: number | null
+          requires_common_app_essay?: boolean
+          requires_supplemental_essay?: boolean
+          resume_link?: string | null
+          scholarship_amount?: number | null
+          scholarship_info_link?: string | null
+          school_name?: string
+          status?: string
+          student_id?: string
+          updated_at?: string
+          website_link?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "college_applications_added_by_fkey"
+            columns: ["added_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "college_applications_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notes: {
         Row: {
           author_id: string
