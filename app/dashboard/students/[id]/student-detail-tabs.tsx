@@ -10,6 +10,15 @@ import {
   SECONDARY_BUTTON_CLASS,
   StudentFormFields,
 } from '@/components/student-form-fields'
+import { DEMO_TEST_SCORES } from './demo-data'
+import {
+  ActivitiesTab,
+  DocsTab,
+  EssaysTab,
+  NotesTab,
+  ScholarshipsTab,
+  SchoolsTab,
+} from './demo-tabs'
 import { InviteParentForm } from './invite-parent-form'
 
 const TABS = [
@@ -26,16 +35,16 @@ const TABS = [
 
 type Tab = (typeof TABS)[number]
 
-// Tabs whose features do not exist yet. Removing a name from here means the
-// switch below needs a real branch for it.
-const PLACEHOLDER_TABS: readonly Tab[] = [
-  'Notes',
-  'Schools',
-  'Scholarships',
-  'Essays',
-  'Activities',
-  'Docs',
-]
+// Tabs backed by hardcoded demo data rather than the database — see
+// demo-tabs.tsx. Nothing in them reads from or writes to Supabase yet.
+const DEMO_TABS: Record<string, () => React.ReactElement> = {
+  Notes: NotesTab,
+  Schools: SchoolsTab,
+  Scholarships: ScholarshipsTab,
+  Essays: EssaysTab,
+  Activities: ActivitiesTab,
+  Docs: DocsTab,
+}
 
 export type StudentSummary = {
   id: string
@@ -189,10 +198,61 @@ function OverviewTab({
   )
 }
 
-function ComingSoon({ tab }: { tab: Tab }) {
+/**
+ * The only tab that mixes real and demo data.
+ *
+ * test_scores is a real table, so genuine rows always render. The sample SAT/ACT
+ * scores appear ONLY when a student has none recorded, so the tab is not blank
+ * in a demo — and they are labelled, because unlabelled fake scores on a working
+ * feature would be indistinguishable from real ones. Delete the fallback branch
+ * (and DEMO_TEST_SCORES) once real scores are being entered.
+ */
+function TestScoresTab({ scores }: { scores: TestScoreRow[] }) {
+  const isDemo = scores.length === 0
+  const rows = isDemo ? DEMO_TEST_SCORES : scores
+
   return (
-    <div className="flex min-h-40 flex-col items-center justify-center text-center">
-      <p className="text-sm opacity-70">{tab} — coming soon</p>
+    <div className="flex flex-col gap-4">
+      {/* Header markup mirrors the demo tabs but is inlined rather than shared,
+          so this real tab does not break when demo-tabs.tsx is deleted. */}
+      <div className="flex items-center justify-between gap-4">
+        <h3 className="text-base font-medium">Test Scores</h3>
+        <button type="button" className={PRIMARY_BUTTON_CLASS}>
+          Add Test Score
+        </button>
+      </div>
+
+      <ul className="flex flex-col gap-2">
+        {rows.map((score) => (
+          <li
+            key={score.id}
+            className="flex items-center justify-between gap-4 text-sm"
+          >
+            <span>
+              <span className="font-medium">{score.test_type}</span>{' '}
+              {score.score}
+              <span className="opacity-60">
+                {score.test_date ? ` — ${score.test_date}` : ''}
+              </span>
+            </span>
+
+            {/* Inert: editing a score is not built yet. */}
+            <button
+              type="button"
+              aria-label={`Edit ${score.test_type} score`}
+              className={`shrink-0 ${SECONDARY_BUTTON_CLASS}`}
+            >
+              Edit
+            </button>
+          </li>
+        ))}
+      </ul>
+
+      {isDemo && (
+        <p className="text-xs opacity-50">
+          Sample scores — nothing recorded for this student yet.
+        </p>
+      )}
     </div>
   )
 }
@@ -245,22 +305,7 @@ export function StudentDetailTabs({
           <OverviewTab student={student} canEdit={canEdit} />
         )}
 
-        {activeTab === 'Test Scores' &&
-          (testScores.length === 0 ? (
-            <p className="text-sm opacity-70">No test scores recorded.</p>
-          ) : (
-            <ul className="flex flex-col gap-1.5">
-              {testScores.map((score) => (
-                <li key={score.id} className="text-sm">
-                  <span className="font-medium">{score.test_type}</span>{' '}
-                  {score.score}
-                  <span className="opacity-60">
-                    {score.test_date ? ` — ${score.test_date}` : ''}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          ))}
+        {activeTab === 'Test Scores' && <TestScoresTab scores={testScores} />}
 
         {activeTab === 'Parents' && (
           <div className="flex flex-col gap-6">
@@ -291,7 +336,10 @@ export function StudentDetailTabs({
           </div>
         )}
 
-        {PLACEHOLDER_TABS.includes(activeTab) && <ComingSoon tab={activeTab} />}
+        {(() => {
+          const DemoTab = DEMO_TABS[activeTab]
+          return DemoTab ? <DemoTab /> : null
+        })()}
       </div>
     </div>
   )
