@@ -8,12 +8,10 @@ import {
   DEMO_ACTIVITIES,
   DEMO_DOCS,
   DEMO_ESSAYS,
-  DEMO_NOTES,
   DEMO_SCHOLARSHIPS,
   DEMO_SCHOOLS,
   type ActivityCategory,
   type DemoDoc,
-  type NoteVisibility,
   type ScholarshipStatus,
   type SchoolStatus,
 } from './demo-data'
@@ -72,46 +70,6 @@ const THEAD_ROW_CLASS =
 const TH_CLASS = 'py-2 pr-4 font-medium'
 const TD_CLASS = 'py-2 pr-4'
 const TR_CLASS = 'border-b border-black/5 dark:border-white/10'
-
-// ---------------------------------------------------------------------------
-// Notes
-// ---------------------------------------------------------------------------
-
-const VISIBILITY_TONE: Record<NoteVisibility, Tone> = {
-  'Staff Only': 'neutral',
-  'Shared with Student': 'blue',
-  'Shared with Student & Parents': 'green',
-}
-
-export function NotesTab() {
-  return (
-    <div className="flex flex-col gap-4">
-      <TabHeader title="Notes" action="Add Note" />
-
-      <ul className="flex flex-col gap-3">
-        {DEMO_NOTES.map((note) => (
-          <li
-            key={note.id}
-            className="flex flex-col gap-2 rounded-lg border border-black/10 p-4 dark:border-white/15"
-          >
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <span className="text-sm font-medium">{note.author}</span>
-              <div className="flex items-center gap-2">
-                <Badge
-                  label={note.visibility}
-                  tone={VISIBILITY_TONE[note.visibility]}
-                />
-                <span className="text-xs opacity-60">{note.date}</span>
-              </div>
-            </div>
-
-            <p className="text-sm opacity-80">{note.body}</p>
-          </li>
-        ))}
-      </ul>
-    </div>
-  )
-}
 
 // ---------------------------------------------------------------------------
 // Schools

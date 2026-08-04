@@ -15,10 +15,10 @@ import {
   ActivitiesTab,
   DocsTab,
   EssaysTab,
-  NotesTab,
   ScholarshipsTab,
   SchoolsTab,
 } from './demo-tabs'
+import { NotesTab, type NoteRow } from './notes-tab'
 import { InviteParentForm } from './invite-parent-form'
 
 const TABS = [
@@ -38,7 +38,6 @@ type Tab = (typeof TABS)[number]
 // Tabs backed by hardcoded demo data rather than the database — see
 // demo-tabs.tsx. Nothing in them reads from or writes to Supabase yet.
 const DEMO_TABS: Record<string, () => React.ReactElement> = {
-  Notes: NotesTab,
   Schools: SchoolsTab,
   Scholarships: ScholarshipsTab,
   Essays: EssaysTab,
@@ -261,11 +260,17 @@ export function StudentDetailTabs({
   student,
   testScores,
   parentLinks,
+  notes,
+  studentId,
+  viewerProfileId,
   canEdit,
 }: {
   student: StudentSummary
   testScores: TestScoreRow[]
   parentLinks: ParentLinkRow[]
+  notes: NoteRow[]
+  studentId: string
+  viewerProfileId: string
   // Admin, or the student viewing their own record — decided by the page's
   // access check. RLS (migration 006) is what actually enforces it on save.
   canEdit: boolean
@@ -303,6 +308,14 @@ export function StudentDetailTabs({
       <div role="tabpanel" aria-label={activeTab}>
         {activeTab === 'Overview' && (
           <OverviewTab student={student} canEdit={canEdit} />
+        )}
+
+        {activeTab === 'Notes' && (
+          <NotesTab
+            notes={notes}
+            studentId={studentId}
+            viewerProfileId={viewerProfileId}
+          />
         )}
 
         {activeTab === 'Test Scores' && <TestScoresTab scores={testScores} />}

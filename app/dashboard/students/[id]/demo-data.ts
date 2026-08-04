@@ -30,43 +30,6 @@ export const DEMO_TEST_SCORES: DemoTestScore[] = [
   { id: 'score-3', test_type: 'SAT', score: 1280, test_date: '2026-03-14' },
 ]
 
-export type NoteVisibility =
-  | 'Staff Only'
-  | 'Shared with Student'
-  | 'Shared with Student & Parents'
-
-export type DemoNote = {
-  id: string
-  author: string
-  date: string
-  body: string
-  visibility: NoteVisibility
-}
-
-export const DEMO_NOTES: DemoNote[] = [
-  {
-    id: 'note-1',
-    author: 'Ms. Rivera',
-    date: 'Aug 1, 2026',
-    body: 'Met to review the fall testing plan. Retaking the SAT in October and will use the September practice test as a benchmark. Confident about math, wants extra reading practice.',
-    visibility: 'Shared with Student & Parents',
-  },
-  {
-    id: 'note-2',
-    author: 'Mr. Chen',
-    date: 'Jul 24, 2026',
-    body: 'Discussed narrowing the school list to eight. Strong preference for mid-size campuses within a day of home. Needs to add one more financial safety.',
-    visibility: 'Shared with Student',
-  },
-  {
-    id: 'note-3',
-    author: 'Ms. Rivera',
-    date: 'Jul 9, 2026',
-    body: 'Family is waiting on FAFSA guidance before committing to application fees. Flagging so we revisit before deadlines cluster in December.',
-    visibility: 'Staff Only',
-  },
-]
-
 export type SchoolStatus =
   | 'Researching'
   | 'Touring'

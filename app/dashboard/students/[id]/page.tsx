@@ -1,4 +1,5 @@
 import { requireAdmin } from '../../access'
+import type { NoteRow } from './notes-tab'
 import {
   StudentDetailTabs,
   type ParentLinkRow,
@@ -24,7 +25,7 @@ export default async function StudentDetailPage({
   // Admin-only page. app/dashboard/layout.tsx already gates the whole section;
   // this repeats the check so the page is not relying on a parent layout for
   // authorization. Students and parents read their own records via /portal.
-  const { supabase } = await requireAdmin()
+  const { supabase, userId } = await requireAdmin()
 
   // An admin from another school gets zero rows back from RLS rather than an
   // error, which is indistinguishable from a bad id — both land on "not found".
@@ -82,6 +83,50 @@ export default async function StudentDetailPage({
     }
   }
 
+  // Notes: RLS decides what comes back — the caller's own notes plus any shared
+  // note on a student they can see. Authors are resolved separately rather than
+  // through an embed, matching how parent names are resolved above.
+  const { data: noteRows } = await supabase
+    .from('notes')
+    .select('id, content, visibility, created_at, author_id')
+    .eq('student_id', id)
+    .order('created_at', { ascending: false })
+
+  const notes = noteRows ?? []
+  const authorIds = [...new Set(notes.map((note) => note.author_id))]
+  const authorNames = new Map<string, string>()
+
+  if (authorIds.length > 0) {
+    const { data: authors } = await supabase
+      .from('profiles')
+      .select('id, first_name, last_name')
+      .in('id', authorIds)
+
+    for (const author of authors ?? []) {
+      authorNames.set(
+        author.id,
+        [author.first_name, author.last_name].filter(Boolean).join(' ') ||
+          'Unnamed'
+      )
+    }
+  }
+
+  // Dates are formatted here, on the server. Formatting an ISO string inside a
+  // client component would render one way on the server and another in the
+  // browser's timezone, which React reports as a hydration mismatch.
+  const noteRowsForClient: NoteRow[] = notes.map((note) => ({
+    id: note.id,
+    authorId: note.author_id,
+    authorName: authorNames.get(note.author_id) ?? 'Unknown',
+    createdAtLabel: new Date(note.created_at).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    }),
+    content: note.content,
+    visibility: note.visibility,
+  }))
+
   // Flattened here rather than passing the Map across the server/client
   // boundary, so the client component gets plain rows it can render directly.
   const parentLinkRows: ParentLinkRow[] = parentLinks.map((link) => ({
@@ -110,6 +155,9 @@ export default async function StudentDetailPage({
         }}
         testScores={testScores}
         parentLinks={parentLinkRows}
+        notes={noteRowsForClient}
+        studentId={student.id}
+        viewerProfileId={userId}
         // Everyone who reaches this page is an admin.
         canEdit
       />

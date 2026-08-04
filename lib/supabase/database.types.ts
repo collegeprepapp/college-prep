@@ -78,6 +78,51 @@ export type Database = {
           },
         ]
       }
+      notes: {
+        Row: {
+          author_id: string
+          content: string
+          created_at: string
+          id: string
+          student_id: string
+          updated_at: string
+          visibility: string
+        }
+        Insert: {
+          author_id: string
+          content: string
+          created_at?: string
+          id?: string
+          student_id: string
+          updated_at?: string
+          visibility?: string
+        }
+        Update: {
+          author_id?: string
+          content?: string
+          created_at?: string
+          id?: string
+          student_id?: string
+          updated_at?: string
+          visibility?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notes_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notes_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       parent_student_links: {
         Row: {
           accepted_at: string | null
@@ -381,6 +426,10 @@ export type Database = {
       }
     }
     Functions: {
+      can_access_student: {
+        Args: { target_student_id: string }
+        Returns: boolean
+      }
       get_my_role: { Args: never; Returns: string }
       get_my_school_id: { Args: never; Returns: string }
       is_linked_parent_of: {
