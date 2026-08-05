@@ -1346,7 +1346,7 @@ function FamilySection({
   }
 
   return (
-    <section className="flex flex-col gap-4 border-t border-black/10 pt-8 dark:border-white/15">
+    <section className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h3 className="text-base font-medium">Family</h3>
@@ -1506,7 +1506,7 @@ function TestingSection({
   }
 
   return (
-    <section className="flex flex-col gap-4 border-t border-black/10 pt-8 dark:border-white/15">
+    <section className="flex flex-col gap-4">
       <div>
         <h3 className="text-base font-medium">Testing</h3>
         <p className="mt-0.5 text-xs opacity-60">
@@ -1659,7 +1659,7 @@ function AdditionalInfoSection({
   }
 
   return (
-    <section className="flex flex-col gap-4 border-t border-black/10 pt-8 dark:border-white/15">
+    <section className="flex flex-col gap-4">
       <div>
         <h3 className="text-base font-medium">Additional Information</h3>
         <p className="mt-0.5 text-xs opacity-60">
@@ -1715,6 +1715,70 @@ function AdditionalInfoSection({
 }
 
 // ---------------------------------------------------------------------------
+// Sub-navigation
+// ---------------------------------------------------------------------------
+
+const COMMON_APP_SECTIONS = [
+  'Profile',
+  'Family',
+  'Testing',
+  'Activities',
+  'Honors',
+  'Additional Info',
+] as const
+
+type CommonAppSection = (typeof COMMON_APP_SECTIONS)[number]
+
+/**
+ * The planner's own section switcher.
+ *
+ * Styled as a segmented control rather than a tab bar, because in the admin
+ * view this renders INSIDE the student record's primary tabs
+ * (Overview/Notes/Test Scores/…), which are underlined and text-sm. Two
+ * underline bars stacked would read as one confusing row of peers, so this is
+ * deliberately a different shape: enclosed pills, smaller text, on a tinted
+ * track. It is the same control in the portal, where it happens to be that
+ * page's primary navigation — a segmented control is unremarkable there, so one
+ * implementation covers both rather than branching on context.
+ */
+function SectionNav({
+  active,
+  onSelect,
+}: {
+  active: CommonAppSection
+  onSelect: (section: CommonAppSection) => void
+}) {
+  return (
+    <div
+      role="tablist"
+      aria-label="Common App sections"
+      className="flex flex-wrap gap-1 self-start rounded-lg border border-black/10 bg-black/[0.03] p-1 dark:border-white/15 dark:bg-white/[0.04]"
+    >
+      {COMMON_APP_SECTIONS.map((item) => {
+        const isActive = item === active
+
+        return (
+          <button
+            key={item}
+            role="tab"
+            type="button"
+            aria-selected={isActive}
+            onClick={() => onSelect(item)}
+            className={
+              isActive
+                ? 'rounded-md bg-background px-3 py-1.5 text-xs font-medium shadow-sm ring-1 ring-black/10 dark:ring-white/15'
+                : 'rounded-md px-3 py-1.5 text-xs opacity-70 transition-opacity hover:opacity-100'
+            }
+          >
+            {item}
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
 // Tab
 // ---------------------------------------------------------------------------
 
@@ -1751,6 +1815,7 @@ export function CommonAppTab({
 }) {
   const router = useRouter()
 
+  const [section, setSection] = useState<CommonAppSection>('Profile')
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [addingActivity, setAddingActivity] = useState(false)
   const [addingHonor, setAddingHonor] = useState(false)
@@ -1795,199 +1860,229 @@ export function CommonAppTab({
     router.refresh()
   }
 
+  /**
+   * Clearing the error is the point of routing the change through here: it is
+   * shared by both add-entry forms and every reorder handler, so an Activities
+   * failure left on screen would reappear under Honors as if it belonged there.
+   *
+   * The in-progress add forms are deliberately NOT reset — switching away and
+   * back keeps a half-typed entry, which is the behaviour the single scrolling
+   * page had.
+   */
+  function selectSection(next: CommonAppSection) {
+    setError(null)
+    setSection(next)
+  }
+
   return (
-    <div className="flex flex-col gap-10">
-      <ProfileSection profile={profile} studentId={studentId} />
+    <div className="flex flex-col gap-6">
+      <SectionNav active={section} onSelect={selectSection} />
 
-      <FamilySection
-        family={family}
-        studentId={studentId}
-        expandedId={expandedId}
-        setExpandedId={setExpandedId}
-      />
-
-      <TestingSection
-        testing={testing}
-        scoreOptions={scoreOptions}
-        studentId={studentId}
-      />
-
-      <section className="flex flex-col gap-4 border-t border-black/10 pt-8 dark:border-white/15">
-        <SectionHeader
-          title="Activities"
-          hint="Drag to rank."
-          count={activities.length}
-          limit={COMMON_APP_ACTIVITY_LIMIT}
-          onAdd={() => setAddingActivity(true)}
-          adding={addingActivity}
-        />
-
-        {addingActivity && (
-          <form
-            onSubmit={addActivity}
-            className="flex flex-col gap-4 rounded-lg border border-black/10 p-4 dark:border-white/15"
-          >
-            <h4 className="text-sm font-medium">New Activity Entry</h4>
-
-            <ActivityFields
-              idPrefix="new-ca-activity"
-              values={activityValues}
-              onChange={setActivityValues}
-              sources={activitySources}
-              disabled={isBusy}
-            />
-
-            {error && <ErrorBanner message={error} />}
-
-            <div className="flex gap-2">
-              <button type="submit" disabled={isBusy} className={PRIMARY_BUTTON_CLASS}>
-                {isBusy ? 'Saving…' : 'Save Entry'}
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setAddingActivity(false)
-                  setActivityValues(EMPTY_COMMON_APP_ACTIVITY)
-                  setError(null)
-                }}
-                disabled={isBusy}
-                className={SECONDARY_BUTTON_CLASS}
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
+      <div role="tabpanel" aria-label={section}>
+        {section === 'Profile' && (
+          <ProfileSection profile={profile} studentId={studentId} />
         )}
 
-        {activities.length === 0 ? (
-          <p className="text-sm opacity-70">No activity entries drafted yet.</p>
-        ) : (
-          <SortableList
-            items={activities}
-            cutoffAfter={COMMON_APP_ACTIVITY_LIMIT}
-            cutoffLabel={`Top ${COMMON_APP_ACTIVITY_LIMIT} — submitted`}
-            onReorder={async (ids) => {
-              const result = await reorderCommonAppActivities(studentId, ids)
-              if (!result.ok) {
-                setError(result.error)
-                return false
-              }
-              router.refresh()
-              return true
-            }}
-            renderItem={(row, index, handle) => (
-              <ActivityEntry
-                row={row}
-                rank={index + 1}
-                handle={handle}
-                studentId={studentId}
-                sources={activitySources}
-                isExpanded={expandedId === row.id}
-                onToggle={() =>
-                  setExpandedId((current) =>
-                    current === row.id ? null : row.id
-                  )
-                }
-                onChanged={() => {
-                  setExpandedId(null)
-                  router.refresh()
-                }}
-              />
-            )}
+        {section === 'Family' && (
+          <FamilySection
+            family={family}
+            studentId={studentId}
+            expandedId={expandedId}
+            setExpandedId={setExpandedId}
           />
         )}
-      </section>
 
-      <section className="flex flex-col gap-4 border-t border-black/10 pt-8 dark:border-white/15">
-        <SectionHeader
-          title="Honors"
-          hint="Drag to rank."
-          count={honors.length}
-          limit={COMMON_APP_HONOR_LIMIT}
-          onAdd={() => setAddingHonor(true)}
-          adding={addingHonor}
-        />
-
-        {addingHonor && (
-          <form
-            onSubmit={addHonor}
-            className="flex flex-col gap-4 rounded-lg border border-black/10 p-4 dark:border-white/15"
-          >
-            <h4 className="text-sm font-medium">New Honor Entry</h4>
-
-            <HonorFields
-              idPrefix="new-ca-honor"
-              values={honorValues}
-              onChange={setHonorValues}
-              sources={honorSources}
-              disabled={isBusy}
-            />
-
-            {error && <ErrorBanner message={error} />}
-
-            <div className="flex gap-2">
-              <button type="submit" disabled={isBusy} className={PRIMARY_BUTTON_CLASS}>
-                {isBusy ? 'Saving…' : 'Save Entry'}
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setAddingHonor(false)
-                  setHonorValues(EMPTY_COMMON_APP_HONOR)
-                  setError(null)
-                }}
-                disabled={isBusy}
-                className={SECONDARY_BUTTON_CLASS}
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
-        )}
-
-        {honors.length === 0 ? (
-          <p className="text-sm opacity-70">No honor entries drafted yet.</p>
-        ) : (
-          <SortableList
-            items={honors}
-            cutoffAfter={COMMON_APP_HONOR_LIMIT}
-            cutoffLabel={`Top ${COMMON_APP_HONOR_LIMIT} — submitted`}
-            onReorder={async (ids) => {
-              const result = await reorderCommonAppHonors(studentId, ids)
-              if (!result.ok) {
-                setError(result.error)
-                return false
-              }
-              router.refresh()
-              return true
-            }}
-            renderItem={(row, index, handle) => (
-              <HonorEntry
-                row={row}
-                rank={index + 1}
-                handle={handle}
-                studentId={studentId}
-                sources={honorSources}
-                isExpanded={expandedId === row.id}
-                onToggle={() =>
-                  setExpandedId((current) =>
-                    current === row.id ? null : row.id
-                  )
-                }
-                onChanged={() => {
-                  setExpandedId(null)
-                  router.refresh()
-                }}
-              />
-            )}
+        {section === 'Testing' && (
+          <TestingSection
+            testing={testing}
+            scoreOptions={scoreOptions}
+            studentId={studentId}
           />
         )}
-      </section>
 
-      <AdditionalInfoSection
-        additionalInfo={additionalInfo}
-        studentId={studentId}
-      />
+        {section === 'Activities' && (
+          <section className="flex flex-col gap-4">
+            <SectionHeader
+              title="Activities"
+              hint="Drag to rank."
+              count={activities.length}
+              limit={COMMON_APP_ACTIVITY_LIMIT}
+              onAdd={() => setAddingActivity(true)}
+              adding={addingActivity}
+            />
+
+            {addingActivity && (
+              <form
+                onSubmit={addActivity}
+                className="flex flex-col gap-4 rounded-lg border border-black/10 p-4 dark:border-white/15"
+              >
+                <h4 className="text-sm font-medium">New Activity Entry</h4>
+
+                <ActivityFields
+                  idPrefix="new-ca-activity"
+                  values={activityValues}
+                  onChange={setActivityValues}
+                  sources={activitySources}
+                  disabled={isBusy}
+                />
+
+                {error && <ErrorBanner message={error} />}
+
+                <div className="flex gap-2">
+                  <button type="submit" disabled={isBusy} className={PRIMARY_BUTTON_CLASS}>
+                    {isBusy ? 'Saving…' : 'Save Entry'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAddingActivity(false)
+                      setActivityValues(EMPTY_COMMON_APP_ACTIVITY)
+                      setError(null)
+                    }}
+                    disabled={isBusy}
+                    className={SECONDARY_BUTTON_CLASS}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {activities.length === 0 ? (
+              <p className="text-sm opacity-70">No activity entries drafted yet.</p>
+            ) : (
+              <SortableList
+                items={activities}
+                cutoffAfter={COMMON_APP_ACTIVITY_LIMIT}
+                cutoffLabel={`Top ${COMMON_APP_ACTIVITY_LIMIT} — submitted`}
+                onReorder={async (ids) => {
+                  const result = await reorderCommonAppActivities(studentId, ids)
+                  if (!result.ok) {
+                    setError(result.error)
+                    return false
+                  }
+                  router.refresh()
+                  return true
+                }}
+                renderItem={(row, index, handle) => (
+                  <ActivityEntry
+                    row={row}
+                    rank={index + 1}
+                    handle={handle}
+                    studentId={studentId}
+                    sources={activitySources}
+                    isExpanded={expandedId === row.id}
+                    onToggle={() =>
+                      setExpandedId((current) =>
+                        current === row.id ? null : row.id
+                      )
+                    }
+                    onChanged={() => {
+                      setExpandedId(null)
+                      router.refresh()
+                    }}
+                  />
+                )}
+              />
+            )}
+          </section>
+        )}
+
+        {section === 'Honors' && (
+          <section className="flex flex-col gap-4">
+            <SectionHeader
+              title="Honors"
+              hint="Drag to rank."
+              count={honors.length}
+              limit={COMMON_APP_HONOR_LIMIT}
+              onAdd={() => setAddingHonor(true)}
+              adding={addingHonor}
+            />
+
+            {addingHonor && (
+              <form
+                onSubmit={addHonor}
+                className="flex flex-col gap-4 rounded-lg border border-black/10 p-4 dark:border-white/15"
+              >
+                <h4 className="text-sm font-medium">New Honor Entry</h4>
+
+                <HonorFields
+                  idPrefix="new-ca-honor"
+                  values={honorValues}
+                  onChange={setHonorValues}
+                  sources={honorSources}
+                  disabled={isBusy}
+                />
+
+                {error && <ErrorBanner message={error} />}
+
+                <div className="flex gap-2">
+                  <button type="submit" disabled={isBusy} className={PRIMARY_BUTTON_CLASS}>
+                    {isBusy ? 'Saving…' : 'Save Entry'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAddingHonor(false)
+                      setHonorValues(EMPTY_COMMON_APP_HONOR)
+                      setError(null)
+                    }}
+                    disabled={isBusy}
+                    className={SECONDARY_BUTTON_CLASS}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {honors.length === 0 ? (
+              <p className="text-sm opacity-70">No honor entries drafted yet.</p>
+            ) : (
+              <SortableList
+                items={honors}
+                cutoffAfter={COMMON_APP_HONOR_LIMIT}
+                cutoffLabel={`Top ${COMMON_APP_HONOR_LIMIT} — submitted`}
+                onReorder={async (ids) => {
+                  const result = await reorderCommonAppHonors(studentId, ids)
+                  if (!result.ok) {
+                    setError(result.error)
+                    return false
+                  }
+                  router.refresh()
+                  return true
+                }}
+                renderItem={(row, index, handle) => (
+                  <HonorEntry
+                    row={row}
+                    rank={index + 1}
+                    handle={handle}
+                    studentId={studentId}
+                    sources={honorSources}
+                    isExpanded={expandedId === row.id}
+                    onToggle={() =>
+                      setExpandedId((current) =>
+                        current === row.id ? null : row.id
+                      )
+                    }
+                    onChanged={() => {
+                      setExpandedId(null)
+                      router.refresh()
+                    }}
+                  />
+                )}
+              />
+            )}
+          </section>
+        )}
+
+        {section === 'Additional Info' && (
+          <AdditionalInfoSection
+            additionalInfo={additionalInfo}
+            studentId={studentId}
+          />
+        )}
+      </div>
     </div>
   )
 }
