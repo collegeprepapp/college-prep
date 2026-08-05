@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { requireAdmin } from '../access'
+import { ParentLinkActions } from './parent-link-actions'
 
 type ParentLink = {
   id: string
@@ -33,18 +34,32 @@ function fullName(first: string | null, last: string | null): string | null {
   return name || null
 }
 
+// Three states since migration 018. Anything unrecognised falls through to the
+// neutral tone showing its raw value, rather than being mislabelled "Pending".
+const STATUS_TONE: Record<string, string> = {
+  accepted:
+    'border-green-600/30 bg-green-600/10 text-green-700 dark:text-green-400',
+  pending:
+    'border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400',
+  revoked: 'border-red-600/25 bg-red-600/5 text-red-700/80 dark:text-red-400/80',
+}
+
+const STATUS_LABEL: Record<string, string> = {
+  accepted: 'Accepted',
+  pending: 'Pending',
+  revoked: 'Revoked',
+}
+
 function StatusBadge({ status }: { status: string }) {
-  const isAccepted = status === 'accepted'
+  const tone =
+    STATUS_TONE[status] ??
+    'border-black/15 bg-black/5 dark:border-white/20 dark:bg-white/10'
 
   return (
     <span
-      className={
-        isAccepted
-          ? 'rounded-full border border-green-600/30 bg-green-600/10 px-2 py-0.5 text-xs font-medium text-green-700 dark:text-green-400'
-          : 'rounded-full border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-xs font-medium text-amber-700 dark:text-amber-400'
-      }
+      className={`whitespace-nowrap rounded-full border px-2 py-0.5 text-xs font-medium ${tone}`}
     >
-      {isAccepted ? 'Accepted' : 'Pending'}
+      {STATUS_LABEL[status] ?? status}
     </span>
   )
 }
@@ -182,6 +197,7 @@ export default async function ParentsPage() {
                 <th className="py-2 pr-4 font-medium">Status</th>
                 <th className="py-2 pr-4 font-medium">Invited</th>
                 <th className="py-2 pr-4 font-medium">Invited By</th>
+                <th className="py-2 pr-4 font-medium" />
               </tr>
             </thead>
             <tbody>
@@ -234,6 +250,15 @@ export default async function ParentsPage() {
 
                     <td className="py-2 pr-4 align-top opacity-70">
                       {link.invitedByName ?? '—'}
+                    </td>
+
+                    <td className="py-2 pr-4 align-top">
+                      <ParentLinkActions
+                        linkId={link.id}
+                        status={link.status}
+                        parentName={group.parentName}
+                        studentName={link.studentName ?? 'this student'}
+                      />
                     </td>
                   </tr>
                 ))

@@ -489,6 +489,7 @@ export type Database = {
           invite_token: string
           invited_by: string
           parent_profile_id: string | null
+          revoked_at: string | null
           status: string
           student_id: string
         }
@@ -499,6 +500,7 @@ export type Database = {
           invite_token?: string
           invited_by: string
           parent_profile_id?: string | null
+          revoked_at?: string | null
           status?: string
           student_id: string
         }
@@ -509,6 +511,7 @@ export type Database = {
           invite_token?: string
           invited_by?: string
           parent_profile_id?: string | null
+          revoked_at?: string | null
           status?: string
           student_id?: string
         }
@@ -705,30 +708,43 @@ export type Database = {
       }
       test_scores: {
         Row: {
+          added_by: string | null
           created_at: string
           id: string
           score: number
           student_id: string
           test_date: string | null
           test_type: string
+          updated_at: string
         }
         Insert: {
+          added_by?: string | null
           created_at?: string
           id?: string
           score: number
           student_id: string
           test_date?: string | null
           test_type: string
+          updated_at?: string
         }
         Update: {
+          added_by?: string | null
           created_at?: string
           id?: string
           score?: number
           student_id?: string
           test_date?: string | null
           test_type?: string
+          updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "test_scores_added_by_fkey"
+            columns: ["added_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "test_scores_student_id_fkey"
             columns: ["student_id"]
