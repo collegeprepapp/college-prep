@@ -19,6 +19,12 @@ import {
 import { ActivitiesTab, type ActivityRow } from '@/components/student-tabs/activities-tab'
 import { HonorsTab, type HonorRow } from '@/components/student-tabs/honors-tab'
 import {
+  CommonAppTab,
+  type CommonAppActivityRow,
+  type CommonAppHonorRow,
+  type SourceOption,
+} from '@/components/student-tabs/common-app-tab'
+import {
   EssaysTab,
   type EssayRow,
   type EssaySchoolOption,
@@ -38,6 +44,7 @@ const TABS = [
   'Essays',
   'Activities',
   'Honors',
+  'Common App',
   'Docs',
 ] as const
 
@@ -200,6 +207,10 @@ export function StudentDetailTabs({
   activities,
   honors,
   documents,
+  commonAppActivities,
+  commonAppHonors,
+  activitySources,
+  honorSources,
   studentId,
   viewerProfileId,
   canEdit,
@@ -215,6 +226,10 @@ export function StudentDetailTabs({
   activities: ActivityRow[]
   honors: HonorRow[]
   documents: DocumentRow[]
+  commonAppActivities: CommonAppActivityRow[]
+  commonAppHonors: CommonAppHonorRow[]
+  activitySources: SourceOption[]
+  honorSources: SourceOption[]
   studentId: string
   viewerProfileId: string
   // Admin, or the student viewing their own record — decided by the page's
@@ -317,6 +332,16 @@ export function StudentDetailTabs({
 
             <InviteParentForm studentId={student.id} />
           </div>
+        )}
+
+        {activeTab === 'Common App' && (
+          <CommonAppTab
+            activities={commonAppActivities}
+            honors={commonAppHonors}
+            activitySources={activitySources}
+            honorSources={honorSources}
+            studentId={studentId}
+          />
         )}
 
         {activeTab === 'Docs' && (

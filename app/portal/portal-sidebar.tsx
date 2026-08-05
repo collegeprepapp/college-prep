@@ -38,6 +38,7 @@ export function PortalSidebar({ students }: { students: PortalStudent[] }) {
     { segment: 'scholarships', label: 'Scholarships' },
     { segment: 'essays', label: 'Essays' },
     { segment: 'activities', label: 'Activities & Honors' },
+    { segment: 'common-app', label: 'Common App Planner' },
     { segment: 'test-scores', label: 'Test Scores' },
     { segment: 'notes', label: 'Notes' },
     { segment: 'docs', label: 'Documents' },

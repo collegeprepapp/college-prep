@@ -13,6 +13,11 @@ import type { ActivityRow } from '@/components/student-tabs/activities-tab'
 import type { HonorRow } from '@/components/student-tabs/honors-tab'
 import type { DocumentRow } from '@/components/student-tabs/docs-tab'
 import type { TestScoreRow } from '@/components/student-tabs/test-scores-tab'
+import type {
+  CommonAppActivityRow,
+  CommonAppHonorRow,
+  SourceOption,
+} from '@/components/student-tabs/common-app-tab'
 
 /**
  * The queries behind a student's record, shared by the admin detail page and
@@ -346,4 +351,80 @@ export async function fetchParentLinks(
       : null,
     createdAtLabel: link.created_at ? formatTimestamp(link.created_at) : '',
   }))
+}
+
+/**
+ * Common App planner entries.
+ *
+ * Takes the working lists so the "based on" labels and dropdowns resolve
+ * without extra queries. A source that has since been deleted leaves
+ * source_*_id null (ON DELETE SET NULL in migration 020), which surfaces here
+ * as an empty sourceName rather than a dangling reference.
+ */
+export async function fetchCommonAppPlanner(
+  supabase: Client,
+  studentId: string,
+  activities: ActivityRow[],
+  honors: HonorRow[]
+): Promise<{
+  commonAppActivities: CommonAppActivityRow[]
+  commonAppHonors: CommonAppHonorRow[]
+  activitySources: SourceOption[]
+  honorSources: SourceOption[]
+}> {
+  const [activityResult, honorResult] = await Promise.all([
+    supabase
+      .from('common_app_activities')
+      .select(
+        'id, source_activity_id, activity_type, position_title, organization_name, description, participation_grades, participation_timing, hours_per_week, weeks_per_year, continue_in_college'
+      )
+      .eq('student_id', studentId)
+      // Ties broken by title: sort_order has no uniqueness guarantee.
+      .order('sort_order', { ascending: true })
+      .order('position_title', { ascending: true }),
+    supabase
+      .from('common_app_honors')
+      .select(
+        'id, source_honor_id, title, grade_level, level_of_recognition, description'
+      )
+      .eq('student_id', studentId)
+      .order('sort_order', { ascending: true })
+      .order('title', { ascending: true }),
+  ])
+
+  const activityNames = new Map(activities.map((row) => [row.id, row.name]))
+  const honorNames = new Map(honors.map((row) => [row.id, row.name]))
+
+  return {
+    activitySources: activities.map((row) => ({ id: row.id, name: row.name })),
+    honorSources: honors.map((row) => ({ id: row.id, name: row.name })),
+    commonAppActivities: (activityResult.data ?? []).map((row) => ({
+      id: row.id,
+      sourceActivityId: row.source_activity_id ?? '',
+      sourceName: row.source_activity_id
+        ? (activityNames.get(row.source_activity_id) ?? '')
+        : '',
+      activityType: row.activity_type ?? '',
+      positionTitle: row.position_title ?? '',
+      organizationName: row.organization_name ?? '',
+      description: row.description ?? '',
+      // null and '{}' both mean "nothing selected" to the form.
+      participationGrades: row.participation_grades ?? [],
+      participationTiming: row.participation_timing ?? [],
+      hoursPerWeek: row.hours_per_week,
+      weeksPerYear: row.weeks_per_year,
+      continueInCollege: row.continue_in_college ?? false,
+    })),
+    commonAppHonors: (honorResult.data ?? []).map((row) => ({
+      id: row.id,
+      sourceHonorId: row.source_honor_id ?? '',
+      sourceName: row.source_honor_id
+        ? (honorNames.get(row.source_honor_id) ?? '')
+        : '',
+      title: row.title ?? '',
+      gradeLevel: row.grade_level ?? [],
+      levelOfRecognition: row.level_of_recognition ?? '',
+      description: row.description ?? '',
+    })),
+  }
 }

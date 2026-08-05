@@ -225,6 +225,149 @@ export type Database = {
           },
         ]
       }
+      common_app_activities: {
+        Row: {
+          activity_type: string | null
+          added_by: string | null
+          continue_in_college: boolean | null
+          created_at: string
+          description: string | null
+          hours_per_week: number | null
+          id: string
+          organization_name: string | null
+          participation_grades: string[] | null
+          participation_timing: string[] | null
+          position_title: string | null
+          sort_order: number
+          source_activity_id: string | null
+          student_id: string
+          updated_at: string
+          weeks_per_year: number | null
+        }
+        Insert: {
+          activity_type?: string | null
+          added_by?: string | null
+          continue_in_college?: boolean | null
+          created_at?: string
+          description?: string | null
+          hours_per_week?: number | null
+          id?: string
+          organization_name?: string | null
+          participation_grades?: string[] | null
+          participation_timing?: string[] | null
+          position_title?: string | null
+          sort_order?: number
+          source_activity_id?: string | null
+          student_id: string
+          updated_at?: string
+          weeks_per_year?: number | null
+        }
+        Update: {
+          activity_type?: string | null
+          added_by?: string | null
+          continue_in_college?: boolean | null
+          created_at?: string
+          description?: string | null
+          hours_per_week?: number | null
+          id?: string
+          organization_name?: string | null
+          participation_grades?: string[] | null
+          participation_timing?: string[] | null
+          position_title?: string | null
+          sort_order?: number
+          source_activity_id?: string | null
+          student_id?: string
+          updated_at?: string
+          weeks_per_year?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "common_app_activities_added_by_fkey"
+            columns: ["added_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "common_app_activities_source_activity_id_fkey"
+            columns: ["source_activity_id"]
+            isOneToOne: false
+            referencedRelation: "activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "common_app_activities_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      common_app_honors: {
+        Row: {
+          added_by: string | null
+          created_at: string
+          description: string | null
+          grade_level: string[] | null
+          id: string
+          level_of_recognition: string | null
+          sort_order: number
+          source_honor_id: string | null
+          student_id: string
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          added_by?: string | null
+          created_at?: string
+          description?: string | null
+          grade_level?: string[] | null
+          id?: string
+          level_of_recognition?: string | null
+          sort_order?: number
+          source_honor_id?: string | null
+          student_id: string
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          added_by?: string | null
+          created_at?: string
+          description?: string | null
+          grade_level?: string[] | null
+          id?: string
+          level_of_recognition?: string | null
+          sort_order?: number
+          source_honor_id?: string | null
+          student_id?: string
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "common_app_honors_added_by_fkey"
+            columns: ["added_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "common_app_honors_source_honor_id_fkey"
+            columns: ["source_honor_id"]
+            isOneToOne: false
+            referencedRelation: "honors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "common_app_honors_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       documents: {
         Row: {
           created_at: string

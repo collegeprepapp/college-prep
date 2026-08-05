@@ -9,6 +9,7 @@ import {
   fetchParentLinks,
   fetchScholarships,
   fetchTestScores,
+  fetchCommonAppPlanner,
 } from '@/lib/student-record/queries'
 import {
   StudentDetailTabs,
@@ -78,6 +79,14 @@ export default async function StudentDetailPage({
   // Essays need the college list for their school dropdown, so they follow it.
   const { essays, essaySchools } = await fetchEssays(supabase, id, applications)
 
+  // Needs the working lists for its "based on" labels, so it follows them.
+  const {
+    commonAppActivities,
+    commonAppHonors,
+    activitySources,
+    honorSources,
+  } = await fetchCommonAppPlanner(supabase, id, activities, honors)
+
   return (
     <Shell>
       <h1 className="text-2xl font-semibold tracking-tight">
@@ -104,6 +113,10 @@ export default async function StudentDetailPage({
         activities={activities}
         honors={honors}
         documents={documents}
+        commonAppActivities={commonAppActivities}
+        commonAppHonors={commonAppHonors}
+        activitySources={activitySources}
+        honorSources={honorSources}
         studentId={student.id}
         viewerProfileId={userId}
         // Everyone who reaches this page is an admin.
