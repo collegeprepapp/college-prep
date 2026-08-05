@@ -5,6 +5,8 @@ import type { ScholarshipRow } from './scholarships-tab'
 import type { EssayRow, EssaySchoolOption } from './essays-tab'
 import type { ActivityRow } from './activities-tab'
 import type { HonorRow } from './honors-tab'
+import type { DocumentRow } from './docs-tab'
+import { formatFileSize } from '@/lib/documents/format'
 import {
   StudentDetailTabs,
   type ParentLinkRow,
@@ -276,6 +278,24 @@ export default async function StudentDetailPage({
     description: row.description ?? '',
   }))
 
+  const { data: documentRows } = await supabase
+    .from('documents')
+    .select('id, file_name, mime_type, file_size_bytes, created_at')
+    .eq('student_id', id)
+    .order('created_at', { ascending: false })
+
+  const documents: DocumentRow[] = (documentRows ?? []).map((row) => ({
+    id: row.id,
+    fileName: row.file_name,
+    mimeType: row.mime_type ?? '',
+    sizeLabel: formatFileSize(row.file_size_bytes),
+    uploadedAtLabel: new Date(row.created_at).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    }),
+  }))
+
   // Flattened here rather than passing the Map across the server/client
   // boundary, so the client component gets plain rows it can render directly.
   const parentLinkRows: ParentLinkRow[] = parentLinks.map((link) => ({
@@ -311,6 +331,7 @@ export default async function StudentDetailPage({
         essaySchools={essaySchools}
         activities={activities}
         honors={honors}
+        documents={documents}
         studentId={student.id}
         viewerProfileId={userId}
         // Everyone who reaches this page is an admin.

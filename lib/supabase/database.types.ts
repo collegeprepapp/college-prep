@@ -228,6 +228,54 @@ export type Database = {
           },
         ]
       }
+      documents: {
+        Row: {
+          created_at: string
+          file_name: string
+          file_size_bytes: number | null
+          id: string
+          mime_type: string | null
+          storage_path: string
+          student_id: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          file_name: string
+          file_size_bytes?: number | null
+          id?: string
+          mime_type?: string | null
+          storage_path: string
+          student_id: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          file_name?: string
+          file_size_bytes?: number | null
+          id?: string
+          mime_type?: string | null
+          storage_path?: string
+          student_id?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documents_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documents_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       essay_versions: {
         Row: {
           content: string
@@ -803,6 +851,7 @@ export type Database = {
         Args: { target_student_id: string }
         Returns: boolean
       }
+      safe_uuid: { Args: { value: string }; Returns: string }
     }
     Enums: {
       [_ in never]: never

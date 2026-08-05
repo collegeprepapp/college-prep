@@ -12,7 +12,7 @@ import {
 } from '@/components/student-form-fields'
 import { EditIconButton } from '@/components/icon-button'
 import { DEMO_TEST_SCORES } from './demo-data'
-import { DocsTab } from './demo-tabs'
+import { DocsTab, type DocumentRow } from './docs-tab'
 import { ActivitiesTab, type ActivityRow } from './activities-tab'
 import { HonorsTab, type HonorRow } from './honors-tab'
 import {
@@ -39,12 +39,6 @@ const TABS = [
 ] as const
 
 type Tab = (typeof TABS)[number]
-
-// Tabs backed by hardcoded demo data rather than the database — see
-// demo-tabs.tsx. Nothing in them reads from or writes to Supabase yet.
-const DEMO_TABS: Record<string, () => React.ReactElement> = {
-  Docs: DocsTab,
-}
 
 export type StudentSummary = {
   id: string
@@ -266,6 +260,7 @@ export function StudentDetailTabs({
   essaySchools,
   activities,
   honors,
+  documents,
   studentId,
   viewerProfileId,
   canEdit,
@@ -280,6 +275,7 @@ export function StudentDetailTabs({
   essaySchools: EssaySchoolOption[]
   activities: ActivityRow[]
   honors: HonorRow[]
+  documents: DocumentRow[]
   studentId: string
   viewerProfileId: string
   // Admin, or the student viewing their own record — decided by the page's
@@ -384,10 +380,9 @@ export function StudentDetailTabs({
           </div>
         )}
 
-        {(() => {
-          const DemoTab = DEMO_TABS[activeTab]
-          return DemoTab ? <DemoTab /> : null
-        })()}
+        {activeTab === 'Docs' && (
+          <DocsTab documents={documents} studentId={studentId} />
+        )}
       </div>
     </div>
   )
