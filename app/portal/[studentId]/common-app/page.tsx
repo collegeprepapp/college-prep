@@ -2,6 +2,7 @@ import { getPortalViewer } from '../../access'
 import {
   fetchActivities,
   fetchCommonAppPlanner,
+  fetchCommonAppProfileAndFamily,
   fetchCommonAppTesting,
   fetchHonors,
   fetchTestScores,
@@ -40,6 +41,11 @@ export default async function PortalCommonAppPage({
     testScores
   )
 
+  const { profile, family } = await fetchCommonAppProfileAndFamily(
+    supabase,
+    studentId
+  )
+
   return (
     <div className="flex flex-col gap-6">
       <div>
@@ -59,6 +65,8 @@ export default async function PortalCommonAppPage({
         honorSources={honorSources}
         testing={testing}
         scoreOptions={scoreOptions}
+        profile={profile}
+        family={family}
         studentId={studentId}
       />
     </div>

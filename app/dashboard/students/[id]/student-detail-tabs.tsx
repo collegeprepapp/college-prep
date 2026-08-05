@@ -22,6 +22,8 @@ import {
   CommonAppTab,
   type CommonAppActivityRow,
   type CommonAppHonorRow,
+  type CommonAppFamilyRow,
+  type CommonAppProfileData,
   type CommonAppTestingData,
   type SourceOption,
   type TestScoreOption,
@@ -215,6 +217,8 @@ export function StudentDetailTabs({
   honorSources,
   commonAppTesting,
   testScoreOptions,
+  commonAppProfile,
+  commonAppFamily,
   studentId,
   viewerProfileId,
   canEdit,
@@ -236,6 +240,8 @@ export function StudentDetailTabs({
   honorSources: SourceOption[]
   commonAppTesting: CommonAppTestingData
   testScoreOptions: TestScoreOption[]
+  commonAppProfile: CommonAppProfileData
+  commonAppFamily: CommonAppFamilyRow[]
   studentId: string
   viewerProfileId: string
   // Admin, or the student viewing their own record — decided by the page's
@@ -350,6 +356,8 @@ export function StudentDetailTabs({
             honorSources={honorSources}
             testing={commonAppTesting}
             scoreOptions={testScoreOptions}
+            profile={commonAppProfile}
+            family={commonAppFamily}
             studentId={studentId}
           />
         )}

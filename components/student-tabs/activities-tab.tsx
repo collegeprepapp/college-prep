@@ -166,6 +166,16 @@ function ActivityItem({
   const [isBusy, setIsBusy] = useState(false)
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false)
 
+  // Re-seed from props whenever the editor OPENS, so reopening after a save
+  // (or after someone else's change arrived) never shows a pre-refresh copy.
+  function handleToggle() {
+    if (!isExpanded) {
+      setValues(toFormInput(row))
+      setError(null)
+    }
+    onToggle()
+  }
+
   async function save(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setError(null)
@@ -214,7 +224,7 @@ function ActivityItem({
 
         <button
           type="button"
-          onClick={onToggle}
+          onClick={handleToggle}
           aria-expanded={isExpanded}
           className="flex flex-1 flex-col items-start gap-0.5 text-left"
         >
@@ -252,7 +262,7 @@ function ActivityItem({
             </>
           ) : (
             <>
-              <EditIconButton label={`Edit ${row.name}`} onClick={onToggle} />
+              <EditIconButton label={`Edit ${row.name}`} onClick={handleToggle} />
               <DeleteIconButton
                 label={`Delete ${row.name}`}
                 onClick={() => setIsConfirmingDelete(true)}

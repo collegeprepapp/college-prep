@@ -11,6 +11,7 @@ import {
   fetchTestScores,
   fetchCommonAppPlanner,
   fetchCommonAppTesting,
+  fetchCommonAppProfileAndFamily,
 } from '@/lib/student-record/queries'
 import {
   StudentDetailTabs,
@@ -95,6 +96,9 @@ export default async function StudentDetailPage({
     testScores
   )
 
+  const { profile: commonAppProfile, family: commonAppFamily } =
+    await fetchCommonAppProfileAndFamily(supabase, id)
+
   return (
     <Shell>
       <h1 className="text-2xl font-semibold tracking-tight">
@@ -127,6 +131,8 @@ export default async function StudentDetailPage({
         honorSources={honorSources}
         commonAppTesting={testing}
         testScoreOptions={scoreOptions}
+        commonAppProfile={commonAppProfile}
+        commonAppFamily={commonAppFamily}
         studentId={student.id}
         viewerProfileId={userId}
         // Everyone who reaches this page is an admin.

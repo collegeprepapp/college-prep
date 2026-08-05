@@ -49,16 +49,41 @@ export function SortableList<T extends { id: string }>({
   cutoffLabel?: string
   renderItem: (item: T, index: number, handle: React.ReactNode) => React.ReactNode
 }) {
-  const [order, setOrder] = useState(items)
+  /**
+   * ONLY the ordering is held in state — never the items themselves.
+   *
+   * This used to cache the item objects and re-sync them just when the id
+   * sequence changed. Editing a field does not change the sequence, so a saved
+   * edit kept rendering the copy captured when the list mounted: the write
+   * succeeded, router.refresh() delivered fresh props, and the list ignored
+   * them until a full reload remounted it.
+   *
+   * Ordering is the only thing this component owns (drag changes it before the
+   * server confirms); content belongs to the server and is read from props on
+   * every render.
+   */
+  const [orderIds, setOrderIds] = useState<string[]>(() =>
+    items.map((item) => item.id)
+  )
 
   // Re-sync when the server sends a different sequence. Keyed on the id
   // sequence rather than the array identity, which changes every render.
   const signature = items.map((item) => item.id).join(',')
 
   useEffect(() => {
-    setOrder(items)
+    setOrderIds(items.map((item) => item.id))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [signature])
+
+  const byId = new Map(items.map((item) => [item.id, item]))
+
+  const ordered = orderIds
+    .map((id) => byId.get(id))
+    .filter((item): item is T => Boolean(item))
+
+  // If the two disagree — an item added or removed between the effect running
+  // and this render — fall back to the server's order so nothing disappears.
+  const order = ordered.length === items.length ? ordered : items
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -85,15 +110,16 @@ export function SortableList<T extends { id: string }>({
       return
     }
 
-    const previous = order
-    const next = arrayMove(order, from, to)
+    // Reordering ids, not items — the objects stay owned by props.
+    const previousIds = order.map((item) => item.id)
+    const nextIds = arrayMove(previousIds, from, to)
 
-    setOrder(next)
+    setOrderIds(nextIds)
 
-    const ok = await onReorder(next.map((item) => item.id))
+    const ok = await onReorder(nextIds)
 
     if (!ok) {
-      setOrder(previous)
+      setOrderIds(previousIds)
     }
   }
 

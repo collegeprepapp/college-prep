@@ -6,6 +6,8 @@ import { UUID_PATTERN } from '@/lib/students/form'
 import type {
   CommonAppActivityInput,
   CommonAppHonorInput,
+  CommonAppFamilyInput,
+  CommonAppProfileInput,
   CommonAppTestingInput,
 } from '@/lib/common-app/constants'
 
@@ -466,6 +468,217 @@ export async function saveCommonAppTesting(
   if (error) {
     console.error('saveCommonAppTesting: upsert failed', error)
     return { ok: false, error: 'Could not save the testing section.' }
+  }
+
+  revalidateStudentRecord(studentId)
+  return { ok: true }
+}
+
+// ---------------------------------------------------------------------------
+// Profile (singleton)
+// ---------------------------------------------------------------------------
+
+/**
+ * Saves the profile section.
+ *
+ * UPSERT for the same reason as the testing section: common_app_profile holds
+ * at most one row per student (migration 022), so a plain insert would work
+ * once and then fail with 23505. student_id has a plain unique constraint, so
+ * onConflict can infer the target.
+ *
+ * Nothing is format-validated — addresses, phone numbers, and country names
+ * vary too much to constrain, and a half-filled draft has to save.
+ */
+export async function saveCommonAppProfile(
+  studentId: string,
+  input: CommonAppProfileInput
+): Promise<CommonAppResult> {
+  if (!UUID_PATTERN.test(studentId.trim())) {
+    return { ok: false, error: 'That does not look like a valid student.' }
+  }
+
+  const supabase = await createClient()
+
+  const { error } = await supabase.from('common_app_profile').upsert(
+    {
+      student_id: studentId.trim(),
+      legal_first_name: optional(input.legalFirstName),
+      legal_middle_name: optional(input.legalMiddleName),
+      legal_last_name: optional(input.legalLastName),
+      preferred_first_name: optional(input.preferredFirstName),
+      address_line1: optional(input.addressLine1),
+      address_line2: optional(input.addressLine2),
+      city: optional(input.city),
+      state: optional(input.state),
+      postal_code: optional(input.postalCode),
+      country: optional(input.country),
+      phone: optional(input.phone),
+      personal_email: optional(input.personalEmail),
+    },
+    { onConflict: 'student_id' }
+  )
+
+  if (error) {
+    console.error('saveCommonAppProfile: upsert failed', error)
+    return { ok: false, error: 'Could not save the profile section.' }
+  }
+
+  revalidateStudentRecord(studentId)
+  return { ok: true }
+}
+
+// ---------------------------------------------------------------------------
+// Family members (list)
+// ---------------------------------------------------------------------------
+
+function familyFields(input: CommonAppFamilyInput) {
+  return {
+    relationship: optional(input.relationship),
+    full_name: optional(input.fullName),
+    occupation: optional(input.occupation),
+    employer: optional(input.employer),
+    education_level: optional(input.educationLevel),
+  }
+}
+
+export async function createCommonAppFamilyMember(
+  studentId: string,
+  input: CommonAppFamilyInput
+): Promise<CommonAppResult> {
+  if (!UUID_PATTERN.test(studentId.trim())) {
+    return { ok: false, error: 'That does not look like a valid student.' }
+  }
+
+  const supabase = await createClient()
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    return { ok: false, error: 'You must be signed in.' }
+  }
+
+  const { data: last } = await supabase
+    .from('common_app_family_members')
+    .select('sort_order')
+    .eq('student_id', studentId.trim())
+    .order('sort_order', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  const { error } = await supabase.from('common_app_family_members').insert({
+    ...familyFields(input),
+    student_id: studentId.trim(),
+    sort_order: (last?.sort_order ?? -1) + 1,
+    added_by: user.id,
+  })
+
+  if (error) {
+    console.error('createCommonAppFamilyMember: insert failed', error)
+    return { ok: false, error: 'Could not add this family member.' }
+  }
+
+  revalidateStudentRecord(studentId)
+  return { ok: true }
+}
+
+export async function updateCommonAppFamilyMember(
+  entryId: string,
+  studentId: string,
+  input: CommonAppFamilyInput
+): Promise<CommonAppResult> {
+  if (!UUID_PATTERN.test(entryId.trim())) {
+    return { ok: false, error: 'That does not look like a valid entry.' }
+  }
+
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('common_app_family_members')
+    .update(familyFields(input))
+    .eq('id', entryId.trim())
+    .select('id')
+
+  if (error || !data || data.length === 0) {
+    console.error('updateCommonAppFamilyMember: update failed', error)
+    return { ok: false, error: 'Could not save changes.' }
+  }
+
+  revalidateStudentRecord(studentId)
+  return { ok: true }
+}
+
+export async function deleteCommonAppFamilyMember(
+  entryId: string,
+  studentId: string
+): Promise<CommonAppResult> {
+  if (!UUID_PATTERN.test(entryId.trim())) {
+    return { ok: false, error: 'That does not look like a valid entry.' }
+  }
+
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('common_app_family_members')
+    .delete()
+    .eq('id', entryId.trim())
+    .select('id')
+
+  if (error || !data || data.length === 0) {
+    console.error('deleteCommonAppFamilyMember: delete failed', error)
+    return { ok: false, error: 'Could not remove this family member.' }
+  }
+
+  revalidateStudentRecord(studentId)
+  return { ok: true }
+}
+
+/** See reorderActivities in activities-actions.ts for why this diffs first. */
+export async function reorderCommonAppFamilyMembers(
+  studentId: string,
+  orderedIds: string[]
+): Promise<CommonAppResult> {
+  if (!UUID_PATTERN.test(studentId.trim())) {
+    return { ok: false, error: 'That does not look like a valid student.' }
+  }
+
+  if (orderedIds.some((id) => !UUID_PATTERN.test(id))) {
+    return { ok: false, error: 'That reorder request was not valid.' }
+  }
+
+  const supabase = await createClient()
+
+  const { data: current, error: readError } = await supabase
+    .from('common_app_family_members')
+    .select('id, sort_order')
+    .eq('student_id', studentId.trim())
+
+  if (readError) {
+    console.error('reorderCommonAppFamilyMembers: read failed', readError)
+    return { ok: false, error: 'Could not save the new order.' }
+  }
+
+  const currentById = new Map(
+    (current ?? []).map((row) => [row.id, row.sort_order])
+  )
+
+  const changed = orderedIds
+    .map((id, index) => ({ id, index }))
+    .filter(({ id, index }) => currentById.has(id) && currentById.get(id) !== index)
+
+  const results = await Promise.all(
+    changed.map(({ id, index }) =>
+      supabase
+        .from('common_app_family_members')
+        .update({ sort_order: index })
+        .eq('id', id)
+        .select('id')
+    )
+  )
+
+  if (results.find((result) => result.error || !result.data?.length)) {
+    return { ok: false, error: 'Could not save the new order.' }
   }
 
   revalidateStudentRecord(studentId)

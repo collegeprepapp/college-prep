@@ -304,6 +304,63 @@ export type Database = {
           },
         ]
       }
+      common_app_family_members: {
+        Row: {
+          added_by: string | null
+          created_at: string
+          education_level: string | null
+          employer: string | null
+          full_name: string | null
+          id: string
+          occupation: string | null
+          relationship: string | null
+          sort_order: number
+          student_id: string
+          updated_at: string
+        }
+        Insert: {
+          added_by?: string | null
+          created_at?: string
+          education_level?: string | null
+          employer?: string | null
+          full_name?: string | null
+          id?: string
+          occupation?: string | null
+          relationship?: string | null
+          sort_order?: number
+          student_id: string
+          updated_at?: string
+        }
+        Update: {
+          added_by?: string | null
+          created_at?: string
+          education_level?: string | null
+          employer?: string | null
+          full_name?: string | null
+          id?: string
+          occupation?: string | null
+          relationship?: string | null
+          sort_order?: number
+          student_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "common_app_family_members_added_by_fkey"
+            columns: ["added_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "common_app_family_members_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       common_app_honors: {
         Row: {
           added_by: string | null
@@ -363,6 +420,68 @@ export type Database = {
             foreignKeyName: "common_app_honors_student_id_fkey"
             columns: ["student_id"]
             isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      common_app_profile: {
+        Row: {
+          address_line1: string | null
+          address_line2: string | null
+          city: string | null
+          country: string | null
+          id: string
+          legal_first_name: string | null
+          legal_last_name: string | null
+          legal_middle_name: string | null
+          personal_email: string | null
+          phone: string | null
+          postal_code: string | null
+          preferred_first_name: string | null
+          state: string | null
+          student_id: string
+          updated_at: string
+        }
+        Insert: {
+          address_line1?: string | null
+          address_line2?: string | null
+          city?: string | null
+          country?: string | null
+          id?: string
+          legal_first_name?: string | null
+          legal_last_name?: string | null
+          legal_middle_name?: string | null
+          personal_email?: string | null
+          phone?: string | null
+          postal_code?: string | null
+          preferred_first_name?: string | null
+          state?: string | null
+          student_id: string
+          updated_at?: string
+        }
+        Update: {
+          address_line1?: string | null
+          address_line2?: string | null
+          city?: string | null
+          country?: string | null
+          id?: string
+          legal_first_name?: string | null
+          legal_last_name?: string | null
+          legal_middle_name?: string | null
+          personal_email?: string | null
+          phone?: string | null
+          postal_code?: string | null
+          preferred_first_name?: string | null
+          state?: string | null
+          student_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "common_app_profile_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: true
             referencedRelation: "students"
             referencedColumns: ["id"]
           },

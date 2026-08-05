@@ -136,3 +136,60 @@ export type CommonAppTestingInput = {
   reportedScores: string
   notes: string
 }
+
+export const EDUCATION_LEVELS = [
+  'Some High School',
+  'High School Diploma',
+  'Some College',
+  "Associate's",
+  "Bachelor's",
+  "Master's",
+  'Doctorate',
+  'Other',
+] as const
+
+export type CommonAppProfileInput = {
+  legalFirstName: string
+  legalMiddleName: string
+  legalLastName: string
+  preferredFirstName: string
+  addressLine1: string
+  addressLine2: string
+  city: string
+  state: string
+  postalCode: string
+  country: string
+  phone: string
+  personalEmail: string
+}
+
+export const EMPTY_COMMON_APP_PROFILE: CommonAppProfileInput = {
+  legalFirstName: '',
+  legalMiddleName: '',
+  legalLastName: '',
+  preferredFirstName: '',
+  addressLine1: '',
+  addressLine2: '',
+  city: '',
+  state: '',
+  postalCode: '',
+  country: '',
+  phone: '',
+  personalEmail: '',
+}
+
+export type CommonAppFamilyInput = {
+  relationship: string
+  fullName: string
+  occupation: string
+  employer: string
+  educationLevel: string
+}
+
+export const EMPTY_COMMON_APP_FAMILY: CommonAppFamilyInput = {
+  relationship: '',
+  fullName: '',
+  occupation: '',
+  employer: '',
+  educationLevel: '',
+}

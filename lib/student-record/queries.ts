@@ -16,6 +16,8 @@ import type { TestScoreRow } from '@/components/student-tabs/test-scores-tab'
 import type {
   CommonAppActivityRow,
   CommonAppHonorRow,
+  CommonAppFamilyRow,
+  CommonAppProfileData,
   CommonAppTestingData,
   SourceOption,
   TestScoreOption,
@@ -482,5 +484,64 @@ export async function fetchCommonAppTesting(
         label: `${score.testType}: ${score.score}${when ? ` (${when})` : ''}`,
       }
     }),
+  }
+}
+
+/**
+ * The profile and family sections.
+ *
+ * common_app_profile is a singleton with no row until someone saves (migration
+ * 022), so this reads with maybeSingle() and returns an empty profile rather
+ * than null — the form always has something to bind to, and the upsert sorts
+ * out insert-versus-update on save.
+ */
+export async function fetchCommonAppProfileAndFamily(
+  supabase: Client,
+  studentId: string
+): Promise<{ profile: CommonAppProfileData; family: CommonAppFamilyRow[] }> {
+  const [profileResult, familyResult] = await Promise.all([
+    supabase
+      .from('common_app_profile')
+      .select(
+        'legal_first_name, legal_middle_name, legal_last_name, preferred_first_name, address_line1, address_line2, city, state, postal_code, country, phone, personal_email'
+      )
+      .eq('student_id', studentId)
+      .maybeSingle(),
+    supabase
+      .from('common_app_family_members')
+      .select(
+        'id, relationship, full_name, occupation, employer, education_level'
+      )
+      .eq('student_id', studentId)
+      // Ties broken by name: sort_order has no uniqueness guarantee.
+      .order('sort_order', { ascending: true })
+      .order('full_name', { ascending: true }),
+  ])
+
+  const row = profileResult.data
+
+  return {
+    profile: {
+      legalFirstName: row?.legal_first_name ?? '',
+      legalMiddleName: row?.legal_middle_name ?? '',
+      legalLastName: row?.legal_last_name ?? '',
+      preferredFirstName: row?.preferred_first_name ?? '',
+      addressLine1: row?.address_line1 ?? '',
+      addressLine2: row?.address_line2 ?? '',
+      city: row?.city ?? '',
+      state: row?.state ?? '',
+      postalCode: row?.postal_code ?? '',
+      country: row?.country ?? '',
+      phone: row?.phone ?? '',
+      personalEmail: row?.personal_email ?? '',
+    },
+    family: (familyResult.data ?? []).map((member) => ({
+      id: member.id,
+      relationship: member.relationship ?? '',
+      fullName: member.full_name ?? '',
+      occupation: member.occupation ?? '',
+      employer: member.employer ?? '',
+      educationLevel: member.education_level ?? '',
+    })),
   }
 }

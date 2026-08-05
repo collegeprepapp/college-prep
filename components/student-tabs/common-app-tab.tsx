@@ -22,6 +22,11 @@ import {
   type CommonAppActivityInput,
   type CommonAppHonorInput,
   type CommonAppTestingInput,
+  EDUCATION_LEVELS,
+  EMPTY_COMMON_APP_FAMILY,
+  EMPTY_COMMON_APP_PROFILE,
+  type CommonAppFamilyInput,
+  type CommonAppProfileInput,
 } from '@/lib/common-app/constants'
 import {
   createCommonAppActivity,
@@ -31,7 +36,12 @@ import {
   reorderCommonAppActivities,
   reorderCommonAppHonors,
   updateCommonAppActivity,
+  createCommonAppFamilyMember,
+  deleteCommonAppFamilyMember,
+  reorderCommonAppFamilyMembers,
+  saveCommonAppProfile,
   saveCommonAppTesting,
+  updateCommonAppFamilyMember,
   updateCommonAppHonor,
 } from './common-app-actions'
 import { SortableList } from './sortable-list'
@@ -78,6 +88,13 @@ export type CommonAppTestingData = {
 
 /** A real test_scores row, pre-formatted server-side for insertion. */
 export type TestScoreOption = { id: string; label: string }
+
+/** Never null, for the same reason as the testing answer above. */
+export type CommonAppProfileData = CommonAppProfileInput
+
+export type CommonAppFamilyRow = {
+  id: string
+} & CommonAppFamilyInput
 
 // ---------------------------------------------------------------------------
 // Field helpers
@@ -455,6 +472,16 @@ function ActivityEntry({
   const [isBusy, setIsBusy] = useState(false)
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false)
 
+  // Re-seed from props whenever the editor OPENS, so reopening after a save
+  // (or after someone else's change arrived) never shows a pre-refresh copy.
+  function handleToggle() {
+    if (!isExpanded) {
+      setValues(toActivityInput(row))
+      setError(null)
+    }
+    onToggle()
+  }
+
   async function save(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setError(null)
@@ -521,7 +548,7 @@ function ActivityEntry({
 
         <button
           type="button"
-          onClick={onToggle}
+          onClick={handleToggle}
           aria-expanded={isExpanded}
           className="flex flex-1 flex-col items-start gap-1 text-left"
         >
@@ -562,7 +589,7 @@ function ActivityEntry({
             </>
           ) : (
             <>
-              <EditIconButton label={`Edit ${label}`} onClick={onToggle} />
+              <EditIconButton label={`Edit ${label}`} onClick={handleToggle} />
               <DeleteIconButton
                 label={`Delete ${label}`}
                 onClick={() => setIsConfirmingDelete(true)}
@@ -734,6 +761,16 @@ function HonorEntry({
   const [isBusy, setIsBusy] = useState(false)
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false)
 
+  // Re-seed from props whenever the editor OPENS, so reopening after a save
+  // (or after someone else's change arrived) never shows a pre-refresh copy.
+  function handleToggle() {
+    if (!isExpanded) {
+      setValues(toHonorInput(row))
+      setError(null)
+    }
+    onToggle()
+  }
+
   async function save(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setError(null)
@@ -785,7 +822,7 @@ function HonorEntry({
 
         <button
           type="button"
-          onClick={onToggle}
+          onClick={handleToggle}
           aria-expanded={isExpanded}
           className="flex flex-1 flex-col items-start gap-1 text-left"
         >
@@ -818,7 +855,7 @@ function HonorEntry({
             </>
           ) : (
             <>
-              <EditIconButton label={`Edit ${label}`} onClick={onToggle} />
+              <EditIconButton label={`Edit ${label}`} onClick={handleToggle} />
               <DeleteIconButton
                 label={`Delete ${label}`}
                 onClick={() => setIsConfirmingDelete(true)}
@@ -862,6 +899,542 @@ function HonorEntry({
         </form>
       )}
     </li>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Profile
+// ---------------------------------------------------------------------------
+
+/**
+ * The applicant's identifying details — one row per student, saved together.
+ *
+ * Legal name is asked for separately from the name the school uses: the
+ * students table holds what a counselor calls them day to day, which is often
+ * not what appears on their documents.
+ *
+ * Nothing is format-validated. Addresses, phone numbers, and country names vary
+ * too much to constrain usefully, and a half-filled draft has to save.
+ */
+function ProfileSection({
+  profile,
+  studentId,
+}: {
+  profile: CommonAppProfileData
+  studentId: string
+}) {
+  const router = useRouter()
+  const [values, setValues] = useState<CommonAppProfileInput>({
+    ...EMPTY_COMMON_APP_PROFILE,
+    ...profile,
+  })
+  const [error, setError] = useState<string | null>(null)
+  const [saved, setSaved] = useState(false)
+  const [isBusy, setIsBusy] = useState(false)
+
+  function set<K extends keyof CommonAppProfileInput>(
+    key: K,
+    value: CommonAppProfileInput[K]
+  ) {
+    setValues((current) => ({ ...current, [key]: value }))
+    setSaved(false)
+  }
+
+  function field(
+    key: keyof CommonAppProfileInput,
+    label: string,
+    type: 'text' | 'tel' | 'email' = 'text',
+    autoComplete?: string
+  ) {
+    const id = `ca-profile-${key}`
+
+    return (
+      <div className="flex flex-col gap-1.5">
+        <label htmlFor={id} className="text-sm font-medium">
+          {label}
+        </label>
+        <input
+          id={id}
+          type={type}
+          autoComplete={autoComplete}
+          disabled={isBusy}
+          value={values[key] ?? ''}
+          onChange={(event) => set(key, event.target.value)}
+          className={INPUT_CLASS}
+        />
+      </div>
+    )
+  }
+
+  async function save(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    setError(null)
+    setIsBusy(true)
+
+    const result = await saveCommonAppProfile(studentId, values)
+    setIsBusy(false)
+
+    if (!result.ok) {
+      setError(result.error)
+      return
+    }
+
+    setSaved(true)
+    router.refresh()
+  }
+
+  return (
+    <section className="flex flex-col gap-4">
+      <div>
+        <h3 className="text-base font-medium">Profile</h3>
+        <p className="mt-0.5 text-xs opacity-60">
+          Legal name and contact details, as they should appear on the
+          application.
+        </p>
+      </div>
+
+      <form onSubmit={save} className="flex flex-col gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
+          {field('legalFirstName', 'Legal First Name', 'text', 'given-name')}
+          {field('legalMiddleName', 'Middle Name', 'text', 'additional-name')}
+          {field('legalLastName', 'Legal Last Name', 'text', 'family-name')}
+          {field('preferredFirstName', 'Preferred First Name', 'text', 'nickname')}
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          {field('addressLine1', 'Address Line 1', 'text', 'address-line1')}
+          {field('addressLine2', 'Address Line 2', 'text', 'address-line2')}
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
+          {field('city', 'City', 'text', 'address-level2')}
+          {field('state', 'State / Province', 'text', 'address-level1')}
+          {field('postalCode', 'Postal Code', 'text', 'postal-code')}
+          {field('country', 'Country', 'text', 'country-name')}
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          {field('phone', 'Phone', 'tel', 'tel')}
+          {field('personalEmail', 'Personal Email', 'email', 'email')}
+        </div>
+
+        {error && <ErrorBanner message={error} />}
+
+        <div className="flex items-center gap-3">
+          <button type="submit" disabled={isBusy} className={PRIMARY_BUTTON_CLASS}>
+            {isBusy ? 'Saving…' : 'Save'}
+          </button>
+          {saved && <span className="text-sm opacity-70">Profile saved.</span>}
+        </div>
+      </form>
+    </section>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Family
+// ---------------------------------------------------------------------------
+
+function FamilyFields({
+  idPrefix,
+  values,
+  onChange,
+  disabled,
+}: {
+  idPrefix: string
+  values: CommonAppFamilyInput
+  onChange: (next: CommonAppFamilyInput) => void
+  disabled?: boolean
+}) {
+  function set<K extends keyof CommonAppFamilyInput>(
+    key: K,
+    value: CommonAppFamilyInput[K]
+  ) {
+    onChange({ ...values, [key]: value })
+  }
+
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor={`${idPrefix}-relationship`} className="text-sm font-medium">
+            Relationship
+          </label>
+          <input
+            id={`${idPrefix}-relationship`}
+            type="text"
+            placeholder="Mother, Father, Guardian…"
+            disabled={disabled}
+            value={values.relationship ?? ''}
+            onChange={(event) => set('relationship', event.target.value)}
+            className={INPUT_CLASS}
+          />
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor={`${idPrefix}-name`} className="text-sm font-medium">
+            Full Name
+          </label>
+          <input
+            id={`${idPrefix}-name`}
+            type="text"
+            disabled={disabled}
+            value={values.fullName ?? ''}
+            onChange={(event) => set('fullName', event.target.value)}
+            className={INPUT_CLASS}
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor={`${idPrefix}-occupation`} className="text-sm font-medium">
+            Occupation
+          </label>
+          <input
+            id={`${idPrefix}-occupation`}
+            type="text"
+            disabled={disabled}
+            value={values.occupation ?? ''}
+            onChange={(event) => set('occupation', event.target.value)}
+            className={INPUT_CLASS}
+          />
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor={`${idPrefix}-employer`} className="text-sm font-medium">
+            Employer
+          </label>
+          <input
+            id={`${idPrefix}-employer`}
+            type="text"
+            disabled={disabled}
+            value={values.employer ?? ''}
+            onChange={(event) => set('employer', event.target.value)}
+            className={INPUT_CLASS}
+          />
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor={`${idPrefix}-education`} className="text-sm font-medium">
+            Education Level
+          </label>
+          <select
+            id={`${idPrefix}-education`}
+            disabled={disabled}
+            value={values.educationLevel ?? ''}
+            onChange={(event) => set('educationLevel', event.target.value)}
+            className={INPUT_CLASS}
+          >
+            <option value="">Not chosen</option>
+            {EDUCATION_LEVELS.map((level) => (
+              <option key={level} value={level}>
+                {level}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function FamilyEntry({
+  row, rank, handle, studentId, isExpanded, onToggle, onChanged,
+}: {
+  row: CommonAppFamilyRow
+  rank: number
+  handle: React.ReactNode
+  studentId: string
+  isExpanded: boolean
+  onToggle: () => void
+  onChanged: () => void
+}) {
+  const [values, setValues] = useState<CommonAppFamilyInput>(() => ({
+    relationship: row.relationship,
+    fullName: row.fullName,
+    occupation: row.occupation,
+    employer: row.employer,
+    educationLevel: row.educationLevel,
+  }))
+  const [error, setError] = useState<string | null>(null)
+  const [isBusy, setIsBusy] = useState(false)
+  const [isConfirmingDelete, setIsConfirmingDelete] = useState(false)
+
+  // Re-seed from props whenever the editor OPENS, so reopening after a save
+  // (or after someone else's change arrived) never shows a pre-refresh copy.
+  function handleToggle() {
+    if (!isExpanded) {
+      setValues({
+      relationship: row.relationship,
+      fullName: row.fullName,
+      occupation: row.occupation,
+      employer: row.employer,
+      educationLevel: row.educationLevel,
+    })
+      setError(null)
+    }
+    onToggle()
+  }
+
+  async function save(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    setError(null)
+    setIsBusy(true)
+
+    const result = await updateCommonAppFamilyMember(row.id, studentId, values)
+    setIsBusy(false)
+
+    if (!result.ok) {
+      setError(result.error)
+      return
+    }
+
+    onToggle()
+    onChanged()
+  }
+
+  async function remove() {
+    setError(null)
+    setIsBusy(true)
+
+    const result = await deleteCommonAppFamilyMember(row.id, studentId)
+    setIsBusy(false)
+
+    if (!result.ok) {
+      setIsConfirmingDelete(false)
+      setError(result.error)
+      return
+    }
+
+    onChanged()
+  }
+
+  // Name leads; relationship is the qualifier, the same shape as the Activities
+  // rows where the organization leads and the position follows.
+  const primary = row.fullName || row.relationship || 'Unnamed family member'
+  const secondary = row.fullName ? row.relationship : ''
+  const label = [primary, secondary].filter(Boolean).join(' — ')
+  const summary = [row.occupation, row.employer, row.educationLevel]
+    .filter(Boolean)
+    .join(' · ')
+
+  return (
+    <li className="rounded-lg border border-black/10 p-3 dark:border-white/15">
+      <div className="flex items-start gap-2">
+        <span className="mt-1 flex items-center gap-1">
+          {handle}
+          <span className="w-5 text-xs tabular-nums opacity-50">{rank}</span>
+        </span>
+
+        <button
+          type="button"
+          onClick={handleToggle}
+          aria-expanded={isExpanded}
+          className="flex flex-1 flex-col items-start gap-0.5 text-left"
+        >
+          <span className="flex flex-wrap items-baseline gap-x-2">
+            <span className="text-sm font-medium">{primary}</span>
+            {secondary && (
+              <span className="text-sm opacity-70">— {secondary}</span>
+            )}
+          </span>
+          {summary && <span className="text-xs opacity-70">{summary}</span>}
+        </button>
+
+        <div className="flex shrink-0 gap-2">
+          {isConfirmingDelete ? (
+            <>
+              <button
+                type="button"
+                onClick={remove}
+                disabled={isBusy}
+                className="rounded-md border border-red-500/40 px-3 py-1.5 text-sm font-medium text-red-600 transition-opacity hover:opacity-70 disabled:opacity-50 dark:text-red-400"
+              >
+                {isBusy ? 'Deleting…' : 'Confirm'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsConfirmingDelete(false)}
+                disabled={isBusy}
+                className={SECONDARY_BUTTON_CLASS}
+              >
+                Cancel
+              </button>
+            </>
+          ) : (
+            <>
+              <EditIconButton label={`Edit ${label}`} onClick={handleToggle} />
+              <DeleteIconButton
+                label={`Delete ${label}`}
+                onClick={() => setIsConfirmingDelete(true)}
+              />
+            </>
+          )}
+        </div>
+      </div>
+
+      {error && !isExpanded && <ErrorBanner message={error} />}
+
+      {isExpanded && (
+        <form onSubmit={save} className="mt-3 flex flex-col gap-4">
+          <FamilyFields
+            idPrefix={`ca-family-${row.id}`}
+            values={values}
+            onChange={setValues}
+            disabled={isBusy}
+          />
+
+          {error && <ErrorBanner message={error} />}
+
+          <div className="flex gap-2">
+            <button type="submit" disabled={isBusy} className={PRIMARY_BUTTON_CLASS}>
+              {isBusy ? 'Saving…' : 'Save'}
+            </button>
+            <button
+              type="button"
+              onClick={onToggle}
+              disabled={isBusy}
+              className={SECONDARY_BUTTON_CLASS}
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      )}
+    </li>
+  )
+}
+
+function FamilySection({
+  family,
+  studentId,
+  expandedId,
+  setExpandedId,
+}: {
+  family: CommonAppFamilyRow[]
+  studentId: string
+  expandedId: string | null
+  setExpandedId: (updater: (current: string | null) => string | null) => void
+}) {
+  const router = useRouter()
+  const [isAdding, setIsAdding] = useState(false)
+  const [values, setValues] = useState<CommonAppFamilyInput>(
+    EMPTY_COMMON_APP_FAMILY
+  )
+  const [error, setError] = useState<string | null>(null)
+  const [isBusy, setIsBusy] = useState(false)
+
+  async function add(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    setError(null)
+    setIsBusy(true)
+
+    const result = await createCommonAppFamilyMember(studentId, values)
+    setIsBusy(false)
+
+    if (!result.ok) {
+      setError(result.error)
+      return
+    }
+
+    setIsAdding(false)
+    setValues(EMPTY_COMMON_APP_FAMILY)
+    router.refresh()
+  }
+
+  return (
+    <section className="flex flex-col gap-4 border-t border-black/10 pt-8 dark:border-white/15">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h3 className="text-base font-medium">Family</h3>
+          <p className="mt-0.5 text-xs opacity-60">
+            Parents and guardians. Drag to set the order they appear in.
+          </p>
+        </div>
+
+        {!isAdding && (
+          <button
+            type="button"
+            onClick={() => setIsAdding(true)}
+            className={PRIMARY_BUTTON_CLASS}
+          >
+            Add Family Member
+          </button>
+        )}
+      </div>
+
+      {isAdding && (
+        <form
+          onSubmit={add}
+          className="flex flex-col gap-4 rounded-lg border border-black/10 p-4 dark:border-white/15"
+        >
+          <h4 className="text-sm font-medium">Add Family Member</h4>
+
+          <FamilyFields
+            idPrefix="new-ca-family"
+            values={values}
+            onChange={setValues}
+            disabled={isBusy}
+          />
+
+          {error && <ErrorBanner message={error} />}
+
+          <div className="flex gap-2">
+            <button type="submit" disabled={isBusy} className={PRIMARY_BUTTON_CLASS}>
+              {isBusy ? 'Saving…' : 'Save'}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setIsAdding(false)
+                setValues(EMPTY_COMMON_APP_FAMILY)
+                setError(null)
+              }}
+              disabled={isBusy}
+              className={SECONDARY_BUTTON_CLASS}
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      )}
+
+      {family.length === 0 ? (
+        <p className="text-sm opacity-70">No family members added yet.</p>
+      ) : (
+        <SortableList
+          items={family}
+          onReorder={async (ids) => {
+            const result = await reorderCommonAppFamilyMembers(studentId, ids)
+            if (!result.ok) {
+              setError(result.error)
+              return false
+            }
+            router.refresh()
+            return true
+          }}
+          renderItem={(row, index, handle) => (
+            <FamilyEntry
+              row={row}
+              rank={index + 1}
+              handle={handle}
+              studentId={studentId}
+              isExpanded={expandedId === row.id}
+              onToggle={() =>
+                setExpandedId((current) =>
+                  current === row.id ? null : row.id
+                )
+              }
+              onChanged={() => {
+                setExpandedId(() => null)
+                router.refresh()
+              }}
+            />
+          )}
+        />
+      )}
+    </section>
   )
 }
 
@@ -1053,6 +1626,8 @@ export function CommonAppTab({
   honorSources,
   testing,
   scoreOptions,
+  profile,
+  family,
   studentId,
 }: {
   activities: CommonAppActivityRow[]
@@ -1061,6 +1636,8 @@ export function CommonAppTab({
   honorSources: SourceOption[]
   testing: CommonAppTestingData
   scoreOptions: TestScoreOption[]
+  profile: CommonAppProfileData
+  family: CommonAppFamilyRow[]
   studentId: string
 }) {
   const router = useRouter()
@@ -1111,7 +1688,22 @@ export function CommonAppTab({
 
   return (
     <div className="flex flex-col gap-10">
-      <section className="flex flex-col gap-4">
+      <ProfileSection profile={profile} studentId={studentId} />
+
+      <FamilySection
+        family={family}
+        studentId={studentId}
+        expandedId={expandedId}
+        setExpandedId={setExpandedId}
+      />
+
+      <TestingSection
+        testing={testing}
+        scoreOptions={scoreOptions}
+        studentId={studentId}
+      />
+
+      <section className="flex flex-col gap-4 border-t border-black/10 pt-8 dark:border-white/15">
         <SectionHeader
           title="Activities"
           hint="Drag to rank."
@@ -1282,12 +1874,6 @@ export function CommonAppTab({
           />
         )}
       </section>
-
-      <TestingSection
-        testing={testing}
-        scoreOptions={scoreOptions}
-        studentId={studentId}
-      />
     </div>
   )
 }
