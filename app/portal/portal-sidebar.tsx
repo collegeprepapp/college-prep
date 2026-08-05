@@ -5,10 +5,6 @@ import { useParams, usePathname, useRouter } from 'next/navigation'
 import { SignOutButton } from '@/components/sign-out-button'
 import type { PortalStudent } from './access'
 
-// Everything else now has a real route; Settings is the last inert item, shown
-// as plain text rather than pretending to navigate.
-const PLACEHOLDER_LINKS = ['Settings']
-
 /**
  * Client-side because the active studentId lives in a route segment BELOW this
  * layout — app/portal/layout.tsx never receives it in `params`. useParams reads
@@ -46,6 +42,7 @@ export function PortalSidebar({ students }: { students: PortalStudent[] }) {
     { segment: 'notes', label: 'Notes' },
     { segment: 'docs', label: 'Documents' },
     { segment: 'parents', label: 'Parent Access' },
+    { segment: 'settings', label: 'Settings' },
   ].map(({ segment, label }) => ({
     label,
     href: activeStudentId ? `/portal/${activeStudentId}/${segment}` : '/portal',
@@ -94,17 +91,6 @@ export function PortalSidebar({ students }: { students: PortalStudent[] }) {
           >
             {section.label}
           </Link>
-        ))}
-
-        {PLACEHOLDER_LINKS.map((label) => (
-          <span
-            key={label}
-            aria-disabled="true"
-            title="Coming soon"
-            className="cursor-default rounded-md px-3 py-2 text-sm opacity-40"
-          >
-            {label}
-          </span>
         ))}
       </nav>
 
