@@ -30,45 +30,6 @@ export const DEMO_TEST_SCORES: DemoTestScore[] = [
   { id: 'score-3', test_type: 'SAT', score: 1280, test_date: '2026-03-14' },
 ]
 
-export type ActivityCategory =
-  | 'Volunteer'
-  | 'Leadership'
-  | 'Athletics'
-  | 'Arts'
-  | 'Work'
-
-export type DemoActivity = {
-  id: string
-  name: string
-  hours: number
-  category: ActivityCategory
-  dateRange: string
-}
-
-export const DEMO_ACTIVITIES: DemoActivity[] = [
-  {
-    id: 'activity-1',
-    name: 'Varsity Cross Country',
-    hours: 220,
-    category: 'Athletics',
-    dateRange: 'Aug 2024 — Present',
-  },
-  {
-    id: 'activity-2',
-    name: 'Student Council — Class Treasurer',
-    hours: 90,
-    category: 'Leadership',
-    dateRange: 'Sep 2025 — Present',
-  },
-  {
-    id: 'activity-3',
-    name: 'Food Bank Weekend Crew',
-    hours: 145,
-    category: 'Volunteer',
-    dateRange: 'Jun 2024 — Aug 2026',
-  },
-]
-
 export type DemoDoc = {
   id: string
   filename: string

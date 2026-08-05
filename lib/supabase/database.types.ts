@@ -14,6 +14,66 @@ export type Database = {
   }
   public: {
     Tables: {
+      activities: {
+        Row: {
+          added_by: string | null
+          created_at: string
+          description: string | null
+          hours_per_week: number | null
+          id: string
+          leadership_actions: string | null
+          name: string
+          sort_order: number
+          student_id: string
+          updated_at: string
+          weeks_per_year: number | null
+          years_participated: string | null
+        }
+        Insert: {
+          added_by?: string | null
+          created_at?: string
+          description?: string | null
+          hours_per_week?: number | null
+          id?: string
+          leadership_actions?: string | null
+          name: string
+          sort_order?: number
+          student_id: string
+          updated_at?: string
+          weeks_per_year?: number | null
+          years_participated?: string | null
+        }
+        Update: {
+          added_by?: string | null
+          created_at?: string
+          description?: string | null
+          hours_per_week?: number | null
+          id?: string
+          leadership_actions?: string | null
+          name?: string
+          sort_order?: number
+          student_id?: string
+          updated_at?: string
+          weeks_per_year?: number | null
+          years_participated?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activities_added_by_fkey"
+            columns: ["added_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activities_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       assigned_tasks: {
         Row: {
           assigned_by: string | null
@@ -267,6 +327,60 @@ export type Database = {
           },
           {
             foreignKeyName: "essays_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      honors: {
+        Row: {
+          added_by: string | null
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          organization_name: string | null
+          sort_order: number
+          student_id: string
+          updated_at: string
+          year_earned: string | null
+        }
+        Insert: {
+          added_by?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          organization_name?: string | null
+          sort_order?: number
+          student_id: string
+          updated_at?: string
+          year_earned?: string | null
+        }
+        Update: {
+          added_by?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          organization_name?: string | null
+          sort_order?: number
+          student_id?: string
+          updated_at?: string
+          year_earned?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "honors_added_by_fkey"
+            columns: ["added_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "honors_student_id_fkey"
             columns: ["student_id"]
             isOneToOne: false
             referencedRelation: "students"

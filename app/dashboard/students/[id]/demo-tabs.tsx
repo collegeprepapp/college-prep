@@ -3,9 +3,7 @@
 import { PRIMARY_BUTTON_CLASS } from '@/components/student-form-fields'
 import { EditIconButton } from '@/components/icon-button'
 import {
-  DEMO_ACTIVITIES,
   DEMO_DOCS,
-  type ActivityCategory,
   type DemoDoc,
 } from './demo-data'
 
@@ -63,54 +61,6 @@ const THEAD_ROW_CLASS =
 const TH_CLASS = 'py-2 pr-4 font-medium'
 const TD_CLASS = 'py-2 pr-4'
 const TR_CLASS = 'border-b border-black/5 dark:border-white/10'
-
-// ---------------------------------------------------------------------------
-// Activities
-// ---------------------------------------------------------------------------
-
-const ACTIVITY_CATEGORY_TONE: Record<ActivityCategory, Tone> = {
-  Volunteer: 'green',
-  Leadership: 'purple',
-  Athletics: 'blue',
-  Arts: 'amber',
-  Work: 'neutral',
-}
-
-export function ActivitiesTab() {
-  return (
-    <div className="flex flex-col gap-4">
-      <TabHeader title="Activities" action="Add Activity" />
-
-      <div className="overflow-x-auto">
-        <table className={TABLE_CLASS}>
-          <thead>
-            <tr className={THEAD_ROW_CLASS}>
-              <th className={TH_CLASS}>Activity</th>
-              <th className={TH_CLASS}>Category</th>
-              <th className={TH_CLASS}>Hours</th>
-              <th className={TH_CLASS}>Dates</th>
-            </tr>
-          </thead>
-          <tbody>
-            {DEMO_ACTIVITIES.map((activity) => (
-              <tr key={activity.id} className={TR_CLASS}>
-                <td className={`${TD_CLASS} font-medium`}>{activity.name}</td>
-                <td className={TD_CLASS}>
-                  <Badge
-                    label={activity.category}
-                    tone={ACTIVITY_CATEGORY_TONE[activity.category]}
-                  />
-                </td>
-                <td className={TD_CLASS}>{activity.hours}</td>
-                <td className={TD_CLASS}>{activity.dateRange}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  )
-}
 
 // ---------------------------------------------------------------------------
 // Docs

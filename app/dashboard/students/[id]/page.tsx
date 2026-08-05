@@ -3,6 +3,8 @@ import type { NoteRow } from './notes-tab'
 import type { ApplicationRow } from './schools-tab'
 import type { ScholarshipRow } from './scholarships-tab'
 import type { EssayRow, EssaySchoolOption } from './essays-tab'
+import type { ActivityRow } from './activities-tab'
+import type { HonorRow } from './honors-tab'
 import {
   StudentDetailTabs,
   type ParentLinkRow,
@@ -239,6 +241,41 @@ export default async function StudentDetailPage({
     }),
   }))
 
+  const { data: activityRows } = await supabase
+    .from('activities')
+    .select(
+      'id, name, years_participated, hours_per_week, weeks_per_year, description, leadership_actions'
+    )
+    .eq('student_id', id)
+    // Ties broken by name so the order is stable when sort_order collides.
+    .order('sort_order', { ascending: true })
+    .order('name', { ascending: true })
+
+  const activities: ActivityRow[] = (activityRows ?? []).map((row) => ({
+    id: row.id,
+    name: row.name,
+    yearsParticipated: row.years_participated ?? '',
+    hoursPerWeek: row.hours_per_week,
+    weeksPerYear: row.weeks_per_year,
+    description: row.description ?? '',
+    leadershipActions: row.leadership_actions ?? '',
+  }))
+
+  const { data: honorRows } = await supabase
+    .from('honors')
+    .select('id, name, year_earned, organization_name, description')
+    .eq('student_id', id)
+    .order('sort_order', { ascending: true })
+    .order('name', { ascending: true })
+
+  const honors: HonorRow[] = (honorRows ?? []).map((row) => ({
+    id: row.id,
+    name: row.name,
+    yearEarned: row.year_earned ?? '',
+    organizationName: row.organization_name ?? '',
+    description: row.description ?? '',
+  }))
+
   // Flattened here rather than passing the Map across the server/client
   // boundary, so the client component gets plain rows it can render directly.
   const parentLinkRows: ParentLinkRow[] = parentLinks.map((link) => ({
@@ -272,6 +309,8 @@ export default async function StudentDetailPage({
         scholarships={scholarships}
         essays={essays}
         essaySchools={essaySchools}
+        activities={activities}
+        honors={honors}
         studentId={student.id}
         viewerProfileId={userId}
         // Everyone who reaches this page is an admin.
