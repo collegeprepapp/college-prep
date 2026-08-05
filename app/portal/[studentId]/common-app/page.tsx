@@ -2,7 +2,9 @@ import { getPortalViewer } from '../../access'
 import {
   fetchActivities,
   fetchCommonAppPlanner,
+  fetchCommonAppTesting,
   fetchHonors,
+  fetchTestScores,
 } from '@/lib/student-record/queries'
 import { CommonAppTab } from '@/components/student-tabs/common-app-tab'
 
@@ -17,10 +19,12 @@ export default async function PortalCommonAppPage({
   // RLS scopes every query below to what they may actually read.
   const { supabase } = await getPortalViewer()
 
-  // The working lists feed the "based on" labels and dropdowns.
-  const [activities, honors] = await Promise.all([
+  // The working lists feed the "based on" labels and dropdowns; the real test
+  // scores feed the "Insert from Test Scores" control.
+  const [activities, honors, testScores] = await Promise.all([
     fetchActivities(supabase, studentId),
     fetchHonors(supabase, studentId),
+    fetchTestScores(supabase, studentId),
   ])
 
   const {
@@ -29,6 +33,12 @@ export default async function PortalCommonAppPage({
     activitySources,
     honorSources,
   } = await fetchCommonAppPlanner(supabase, studentId, activities, honors)
+
+  const { testing, scoreOptions } = await fetchCommonAppTesting(
+    supabase,
+    studentId,
+    testScores
+  )
 
   return (
     <div className="flex flex-col gap-6">
@@ -47,6 +57,8 @@ export default async function PortalCommonAppPage({
         honors={commonAppHonors}
         activitySources={activitySources}
         honorSources={honorSources}
+        testing={testing}
+        scoreOptions={scoreOptions}
         studentId={studentId}
       />
     </div>

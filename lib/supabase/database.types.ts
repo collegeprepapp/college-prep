@@ -368,6 +368,41 @@ export type Database = {
           },
         ]
       }
+      common_app_testing: {
+        Row: {
+          id: string
+          notes: string | null
+          reported_scores: string | null
+          student_id: string
+          test_optional: boolean
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          notes?: string | null
+          reported_scores?: string | null
+          student_id: string
+          test_optional?: boolean
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          notes?: string | null
+          reported_scores?: string | null
+          student_id?: string
+          test_optional?: boolean
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "common_app_testing_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: true
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       documents: {
         Row: {
           created_at: string

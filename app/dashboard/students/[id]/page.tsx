@@ -10,6 +10,7 @@ import {
   fetchScholarships,
   fetchTestScores,
   fetchCommonAppPlanner,
+  fetchCommonAppTesting,
 } from '@/lib/student-record/queries'
 import {
   StudentDetailTabs,
@@ -87,6 +88,13 @@ export default async function StudentDetailPage({
     honorSources,
   } = await fetchCommonAppPlanner(supabase, id, activities, honors)
 
+  // Uses the already-fetched scores to build the insertable labels.
+  const { testing, scoreOptions } = await fetchCommonAppTesting(
+    supabase,
+    id,
+    testScores
+  )
+
   return (
     <Shell>
       <h1 className="text-2xl font-semibold tracking-tight">
@@ -117,6 +125,8 @@ export default async function StudentDetailPage({
         commonAppHonors={commonAppHonors}
         activitySources={activitySources}
         honorSources={honorSources}
+        commonAppTesting={testing}
+        testScoreOptions={scoreOptions}
         studentId={student.id}
         viewerProfileId={userId}
         // Everyone who reaches this page is an admin.

@@ -22,7 +22,9 @@ import {
   CommonAppTab,
   type CommonAppActivityRow,
   type CommonAppHonorRow,
+  type CommonAppTestingData,
   type SourceOption,
+  type TestScoreOption,
 } from '@/components/student-tabs/common-app-tab'
 import {
   EssaysTab,
@@ -211,6 +213,8 @@ export function StudentDetailTabs({
   commonAppHonors,
   activitySources,
   honorSources,
+  commonAppTesting,
+  testScoreOptions,
   studentId,
   viewerProfileId,
   canEdit,
@@ -230,6 +234,8 @@ export function StudentDetailTabs({
   commonAppHonors: CommonAppHonorRow[]
   activitySources: SourceOption[]
   honorSources: SourceOption[]
+  commonAppTesting: CommonAppTestingData
+  testScoreOptions: TestScoreOption[]
   studentId: string
   viewerProfileId: string
   // Admin, or the student viewing their own record — decided by the page's
@@ -303,7 +309,9 @@ export function StudentDetailTabs({
           />
         )}
 
-        {activeTab === 'Test Scores' && <TestScoresTab scores={testScores} />}
+        {activeTab === 'Test Scores' && (
+          <TestScoresTab scores={testScores} studentId={studentId} />
+        )}
 
         {activeTab === 'Parents' && (
           <div className="flex flex-col gap-6">
@@ -340,6 +348,8 @@ export function StudentDetailTabs({
             honors={commonAppHonors}
             activitySources={activitySources}
             honorSources={honorSources}
+            testing={commonAppTesting}
+            scoreOptions={testScoreOptions}
             studentId={studentId}
           />
         )}

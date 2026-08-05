@@ -130,3 +130,9 @@ export const EMPTY_COMMON_APP_HONOR: CommonAppHonorInput = {
   levelOfRecognition: '',
   description: '',
 }
+
+export type CommonAppTestingInput = {
+  testOptional: boolean
+  reportedScores: string
+  notes: string
+}

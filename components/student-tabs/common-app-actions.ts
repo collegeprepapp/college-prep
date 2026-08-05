@@ -6,6 +6,7 @@ import { UUID_PATTERN } from '@/lib/students/form'
 import type {
   CommonAppActivityInput,
   CommonAppHonorInput,
+  CommonAppTestingInput,
 } from '@/lib/common-app/constants'
 
 export type CommonAppResult = { ok: true } | { ok: false; error: string }
@@ -420,6 +421,51 @@ export async function reorderCommonAppHonors(
 
   if (results.find((result) => result.error || !result.data?.length)) {
     return { ok: false, error: 'Could not save the new order.' }
+  }
+
+  revalidateStudentRecord(studentId)
+  return { ok: true }
+}
+
+// ---------------------------------------------------------------------------
+// Testing (singleton)
+// ---------------------------------------------------------------------------
+
+/**
+ * Saves the testing section.
+ *
+ * An UPSERT, not an insert: common_app_testing holds at most one row per
+ * student (migration 021), so a plain insert would succeed once and then fail
+ * with 23505 on every later save. student_id has a plain unique constraint —
+ * not a partial index — so Postgres can infer the conflict target and
+ * onConflict works here, unlike the assigned_tasks case in 007.
+ *
+ * Both the insert and update policies from 021 apply, since the statement may
+ * take either path; RLS covers both.
+ */
+export async function saveCommonAppTesting(
+  studentId: string,
+  input: CommonAppTestingInput
+): Promise<CommonAppResult> {
+  if (!UUID_PATTERN.test(studentId.trim())) {
+    return { ok: false, error: 'That does not look like a valid student.' }
+  }
+
+  const supabase = await createClient()
+
+  const { error } = await supabase.from('common_app_testing').upsert(
+    {
+      student_id: studentId.trim(),
+      test_optional: input.testOptional,
+      reported_scores: optional(input.reportedScores),
+      notes: optional(input.notes),
+    },
+    { onConflict: 'student_id' }
+  )
+
+  if (error) {
+    console.error('saveCommonAppTesting: upsert failed', error)
+    return { ok: false, error: 'Could not save the testing section.' }
   }
 
   revalidateStudentRecord(studentId)

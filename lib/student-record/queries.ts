@@ -16,7 +16,9 @@ import type { TestScoreRow } from '@/components/student-tabs/test-scores-tab'
 import type {
   CommonAppActivityRow,
   CommonAppHonorRow,
+  CommonAppTestingData,
   SourceOption,
+  TestScoreOption,
 } from '@/components/student-tabs/common-app-tab'
 
 /**
@@ -108,7 +110,13 @@ export async function fetchTestScores(
     .eq('student_id', studentId)
     .order('test_date', { ascending: false, nullsFirst: false })
 
-  return data ?? []
+  return (data ?? []).map((row) => ({
+    id: row.id,
+    testType: row.test_type,
+    score: row.score,
+    testDate: row.test_date ?? '',
+    testDateLabel: formatDateOnly(row.test_date),
+  }))
 }
 
 export async function fetchNotes(
@@ -426,5 +434,53 @@ export async function fetchCommonAppPlanner(
       levelOfRecognition: row.level_of_recognition ?? '',
       description: row.description ?? '',
     })),
+  }
+}
+
+/**
+ * The testing section, plus the student's real scores formatted for insertion.
+ *
+ * common_app_testing is a singleton (migration 021) and holds no row until
+ * someone saves, so this reads with maybeSingle() and returns an empty answer
+ * rather than null — the form always has something to bind to, and the upsert
+ * decides on save whether that becomes an insert or an update.
+ *
+ * Score labels are built here so the date is formatted server-side and pinned
+ * to UTC, like every other date column: test_date is a plain 'YYYY-MM-DD', and
+ * formatting it in the browser would shift it a month at a boundary.
+ */
+export async function fetchCommonAppTesting(
+  supabase: Client,
+  studentId: string,
+  scores: TestScoreRow[]
+): Promise<{ testing: CommonAppTestingData; scoreOptions: TestScoreOption[] }> {
+  const { data } = await supabase
+    .from('common_app_testing')
+    .select('test_optional, reported_scores, notes')
+    .eq('student_id', studentId)
+    .maybeSingle()
+
+  return {
+    testing: {
+      testOptional: data?.test_optional ?? false,
+      reportedScores: data?.reported_scores ?? '',
+      notes: data?.notes ?? '',
+    },
+    scoreOptions: scores.map((score) => {
+      // Month and year, not the full date — "SAT: 1450 (March 2026)" is how a
+      // score gets referred to. Pinned to UTC like every other date column.
+      const when = score.testDate
+        ? new Date(`${score.testDate}T00:00:00Z`).toLocaleDateString('en-US', {
+            timeZone: 'UTC',
+            month: 'long',
+            year: 'numeric',
+          })
+        : ''
+
+      return {
+        id: score.id,
+        label: `${score.testType}: ${score.score}${when ? ` (${when})` : ''}`,
+      }
+    }),
   }
 }

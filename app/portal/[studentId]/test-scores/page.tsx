@@ -22,7 +22,7 @@ export default async function Page({
         <p className="mt-1 text-sm opacity-70">SAT and ACT results on record.</p>
       </div>
 
-      <TestScoresTab scores={scores} />
+      <TestScoresTab scores={scores} studentId={studentId} />
     </div>
   )
 }

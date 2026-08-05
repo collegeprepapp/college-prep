@@ -21,6 +21,7 @@ import {
   RECOGNITION_LEVELS,
   type CommonAppActivityInput,
   type CommonAppHonorInput,
+  type CommonAppTestingInput,
 } from '@/lib/common-app/constants'
 import {
   createCommonAppActivity,
@@ -30,6 +31,7 @@ import {
   reorderCommonAppActivities,
   reorderCommonAppHonors,
   updateCommonAppActivity,
+  saveCommonAppTesting,
   updateCommonAppHonor,
 } from './common-app-actions'
 import { SortableList } from './sortable-list'
@@ -62,6 +64,20 @@ export type CommonAppHonorRow = {
 
 /** For the "based on" dropdowns — the student's working lists. */
 export type SourceOption = { id: string; name: string }
+
+/**
+ * The testing answer. Never null: common_app_testing holds no row until someone
+ * saves (migration 021), so the query returns an empty answer and the upsert
+ * decides on save whether that is an insert or an update.
+ */
+export type CommonAppTestingData = {
+  testOptional: boolean
+  reportedScores: string
+  notes: string
+}
+
+/** A real test_scores row, pre-formatted server-side for insertion. */
+export type TestScoreOption = { id: string; label: string }
 
 // ---------------------------------------------------------------------------
 // Field helpers
@@ -850,6 +866,175 @@ function HonorEntry({
 }
 
 // ---------------------------------------------------------------------------
+// Testing
+// ---------------------------------------------------------------------------
+
+/**
+ * The testing section: one row per student, saved with a single button.
+ *
+ * "Insert from Test Scores" APPENDS rather than replaces, so several scores can
+ * be added one after another and any wording already typed around them
+ * survives. Replacing would quietly destroy a sentence a student wrote.
+ */
+function TestingSection({
+  testing,
+  scoreOptions,
+  studentId,
+}: {
+  testing: CommonAppTestingData
+  scoreOptions: TestScoreOption[]
+  studentId: string
+}) {
+  const router = useRouter()
+  const [values, setValues] = useState<CommonAppTestingInput>({
+    testOptional: testing.testOptional,
+    reportedScores: testing.reportedScores,
+    notes: testing.notes,
+  })
+  const [error, setError] = useState<string | null>(null)
+  const [saved, setSaved] = useState(false)
+  const [isBusy, setIsBusy] = useState(false)
+
+  function set<K extends keyof CommonAppTestingInput>(
+    key: K,
+    value: CommonAppTestingInput[K]
+  ) {
+    setValues((current) => ({ ...current, [key]: value }))
+    setSaved(false)
+  }
+
+  function insertScore(label: string) {
+    setValues((current) => {
+      const existing = current.reportedScores
+      // Only add a separator when there is something to separate from, and not
+      // if the text already ends with a newline.
+      const separator = !existing || existing.endsWith('\n') ? '' : '\n'
+      return { ...current, reportedScores: `${existing}${separator}${label}` }
+    })
+    setSaved(false)
+  }
+
+  async function save() {
+    setError(null)
+    setIsBusy(true)
+
+    const result = await saveCommonAppTesting(studentId, values)
+    setIsBusy(false)
+
+    if (!result.ok) {
+      setError(result.error)
+      return
+    }
+
+    setSaved(true)
+    router.refresh()
+  }
+
+  return (
+    <section className="flex flex-col gap-4 border-t border-black/10 pt-8 dark:border-white/15">
+      <div>
+        <h3 className="text-base font-medium">Testing</h3>
+        <p className="mt-0.5 text-xs opacity-60">
+          Whether to apply test-optional, and which scores to report.
+        </p>
+      </div>
+
+      <label className="flex items-center gap-2 text-sm">
+        <input
+          type="checkbox"
+          disabled={isBusy}
+          checked={values.testOptional}
+          onChange={(event) => set('testOptional', event.target.checked)}
+          className="size-4"
+        />
+        Applying test-optional
+      </label>
+
+      <div className="flex flex-col gap-1.5">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <label htmlFor="ca-reported-scores" className="text-sm font-medium">
+            Scores to report
+          </label>
+
+          {scoreOptions.length > 0 && (
+            <div className="flex items-center gap-2">
+              <label htmlFor="ca-insert-score" className="text-xs opacity-70">
+                Insert from Test Scores
+              </label>
+              <select
+                id="ca-insert-score"
+                // Resets to the placeholder after each pick so the same score
+                // can be inserted twice if a student wants it.
+                value=""
+                disabled={isBusy}
+                onChange={(event) => {
+                  const option = scoreOptions.find(
+                    (candidate) => candidate.id === event.target.value
+                  )
+                  if (option) insertScore(option.label)
+                }}
+                className={`${INPUT_CLASS} max-w-64`}
+              >
+                <option value="">Choose a score…</option>
+                {scoreOptions.map((option) => (
+                  <option key={option.id} value={option.id}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+        </div>
+
+        <textarea
+          id="ca-reported-scores"
+          rows={4}
+          disabled={isBusy}
+          value={values.reportedScores}
+          onChange={(event) => set('reportedScores', event.target.value)}
+          className={INPUT_CLASS}
+        />
+
+        {scoreOptions.length === 0 && (
+          <p className="text-xs opacity-60">
+            No test scores recorded yet — add them on the Test Scores tab and
+            they will appear here to insert.
+          </p>
+        )}
+      </div>
+
+      <div className="flex flex-col gap-1.5">
+        <label htmlFor="ca-testing-notes" className="text-sm font-medium">
+          Notes
+        </label>
+        <textarea
+          id="ca-testing-notes"
+          rows={3}
+          disabled={isBusy}
+          value={values.notes}
+          onChange={(event) => set('notes', event.target.value)}
+          className={INPUT_CLASS}
+        />
+      </div>
+
+      {error && <ErrorBanner message={error} />}
+
+      <div className="flex items-center gap-3">
+        <button
+          type="button"
+          onClick={save}
+          disabled={isBusy}
+          className={PRIMARY_BUTTON_CLASS}
+        >
+          {isBusy ? 'Saving…' : 'Save'}
+        </button>
+        {saved && <span className="text-sm opacity-70">Testing saved.</span>}
+      </div>
+    </section>
+  )
+}
+
+// ---------------------------------------------------------------------------
 // Tab
 // ---------------------------------------------------------------------------
 
@@ -866,12 +1051,16 @@ export function CommonAppTab({
   honors,
   activitySources,
   honorSources,
+  testing,
+  scoreOptions,
   studentId,
 }: {
   activities: CommonAppActivityRow[]
   honors: CommonAppHonorRow[]
   activitySources: SourceOption[]
   honorSources: SourceOption[]
+  testing: CommonAppTestingData
+  scoreOptions: TestScoreOption[]
   studentId: string
 }) {
   const router = useRouter()
@@ -1093,6 +1282,12 @@ export function CommonAppTab({
           />
         )}
       </section>
+
+      <TestingSection
+        testing={testing}
+        scoreOptions={scoreOptions}
+        studentId={studentId}
+      />
     </div>
   )
 }
