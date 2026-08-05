@@ -19,42 +19,39 @@ export type Database = {
           added_by: string | null
           created_at: string
           description: string | null
-          hours_per_week: number | null
           id: string
           leadership_actions: string | null
           name: string
           sort_order: number
           student_id: string
+          total_hours: number | null
           updated_at: string
-          weeks_per_year: number | null
           years_participated: string | null
         }
         Insert: {
           added_by?: string | null
           created_at?: string
           description?: string | null
-          hours_per_week?: number | null
           id?: string
           leadership_actions?: string | null
           name: string
           sort_order?: number
           student_id: string
+          total_hours?: number | null
           updated_at?: string
-          weeks_per_year?: number | null
           years_participated?: string | null
         }
         Update: {
           added_by?: string | null
           created_at?: string
           description?: string | null
-          hours_per_week?: number | null
           id?: string
           leadership_actions?: string | null
           name?: string
           sort_order?: number
           student_id?: string
+          total_hours?: number | null
           updated_at?: string
-          weeks_per_year?: number | null
           years_participated?: string | null
         }
         Relationships: [

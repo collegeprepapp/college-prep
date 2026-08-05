@@ -11,8 +11,11 @@ import {
   StudentFormFields,
 } from '@/components/student-form-fields'
 import { EditIconButton } from '@/components/icon-button'
-import { DEMO_TEST_SCORES } from './demo-data'
 import { DocsTab, type DocumentRow } from '@/components/student-tabs/docs-tab'
+import {
+  TestScoresTab,
+  type TestScoreRow,
+} from '@/components/student-tabs/test-scores-tab'
 import { ActivitiesTab, type ActivityRow } from '@/components/student-tabs/activities-tab'
 import { HonorsTab, type HonorRow } from '@/components/student-tabs/honors-tab'
 import {
@@ -23,7 +26,7 @@ import {
 import { ScholarshipsTab, type ScholarshipRow } from '@/components/student-tabs/scholarships-tab'
 import { SchoolsTab, type ApplicationRow } from '@/components/student-tabs/schools-tab'
 import { NotesTab, type NoteRow } from '@/components/student-tabs/notes-tab'
-import { InviteParentForm } from './invite-parent-form'
+import { InviteParentForm } from '@/components/student-tabs/invite-parent-form'
 
 const TABS = [
   'Overview',
@@ -48,13 +51,6 @@ export type StudentSummary = {
   gpa: number | null
   class_rank: string | null
   email: string | null
-}
-
-export type TestScoreRow = {
-  id: string
-  test_type: string
-  score: number
-  test_date: string | null
 }
 
 // id and status are nullable because they come from a view — Postgres does not
@@ -187,63 +183,6 @@ function OverviewTab({
         >
           Edit
         </button>
-      )}
-    </div>
-  )
-}
-
-/**
- * The only tab that mixes real and demo data.
- *
- * test_scores is a real table, so genuine rows always render. The sample SAT/ACT
- * scores appear ONLY when a student has none recorded, so the tab is not blank
- * in a demo — and they are labelled, because unlabelled fake scores on a working
- * feature would be indistinguishable from real ones. Delete the fallback branch
- * (and DEMO_TEST_SCORES) once real scores are being entered.
- */
-function TestScoresTab({ scores }: { scores: TestScoreRow[] }) {
-  const isDemo = scores.length === 0
-  const rows = isDemo ? DEMO_TEST_SCORES : scores
-
-  return (
-    <div className="flex flex-col gap-4">
-      {/* Header markup mirrors the demo tabs but is inlined rather than shared,
-          so this real tab does not break when demo-tabs.tsx is deleted. */}
-      <div className="flex items-center justify-between gap-4">
-        <h3 className="text-base font-medium">Test Scores</h3>
-        <button type="button" className={PRIMARY_BUTTON_CLASS}>
-          Add Test Score
-        </button>
-      </div>
-
-      <ul className="flex flex-col gap-2">
-        {rows.map((score) => (
-          <li
-            key={score.id}
-            className="flex items-center justify-between gap-4 text-sm"
-          >
-            <span>
-              <span className="font-medium">{score.test_type}</span>{' '}
-              {score.score}
-              <span className="opacity-60">
-                {score.test_date ? ` — ${score.test_date}` : ''}
-              </span>
-            </span>
-
-            {/* Inert: editing a score is not built yet. */}
-            <span className="shrink-0">
-              <EditIconButton
-                label={`Edit ${score.test_type} score of ${score.score}`}
-              />
-            </span>
-          </li>
-        ))}
-      </ul>
-
-      {isDemo && (
-        <p className="text-xs opacity-50">
-          Sample scores — nothing recorded for this student yet.
-        </p>
       )}
     </div>
   )

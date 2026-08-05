@@ -10,8 +10,7 @@ export type ActivityResult = { ok: true } | { ok: false; error: string }
 type ActivityFields = {
   name: string
   years_participated: string | null
-  hours_per_week: number | null
-  weeks_per_year: number | null
+  total_hours: number | null
   description: string | null
   leadership_actions: string | null
 }
@@ -20,11 +19,12 @@ function optional(value: string): string | null {
   return value.trim() || null
 }
 
-/** Blank means "not recorded"; anything else must be a sane whole number. */
-function optionalCount(
-  value: string,
-  label: string,
-  max: number
+/**
+ * Blank means "not recorded". Fractions are allowed — total_hours is numeric
+ * (migration 019), so half-hour sessions do not have to be rounded away.
+ */
+function optionalTotalHours(
+  value: string
 ): { ok: true; value: number | null } | { ok: false; error: string } {
   const raw = value.trim()
 
@@ -34,10 +34,12 @@ function optionalCount(
 
   const parsed = Number(raw)
 
-  if (!Number.isInteger(parsed) || parsed < 0 || parsed > max) {
+  // The column is unconstrained; this only catches obvious slips. The ceiling
+  // is a little over the hours in a year, so any plausible total passes.
+  if (!Number.isFinite(parsed) || parsed < 0 || parsed > 10000) {
     return {
       ok: false,
-      error: `${label} must be a whole number between 0 and ${max}.`,
+      error: 'Total hours must be a number between 0 and 10,000.',
     }
   }
 
@@ -53,21 +55,15 @@ function parseActivity(
     return { ok: false, error: 'An activity name is required.' }
   }
 
-  // The column itself is unconstrained (migration 015 leaves the judgement to a
-  // counselor), but a typo like 200 hours a week is worth catching at the form.
-  const hours = optionalCount(input.hoursPerWeek, 'Hours per week', 168)
-  if (!hours.ok) return hours
-
-  const weeks = optionalCount(input.weeksPerYear, 'Weeks per year', 52)
-  if (!weeks.ok) return weeks
+  const totalHours = optionalTotalHours(input.totalHours)
+  if (!totalHours.ok) return totalHours
 
   return {
     ok: true,
     fields: {
       name,
       years_participated: optional(input.yearsParticipated),
-      hours_per_week: hours.value,
-      weeks_per_year: weeks.value,
+      total_hours: totalHours.value,
       description: optional(input.description),
       leadership_actions: optional(input.leadershipActions),
     },

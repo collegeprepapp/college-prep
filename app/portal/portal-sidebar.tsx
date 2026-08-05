@@ -5,14 +5,9 @@ import { useParams, usePathname, useRouter } from 'next/navigation'
 import { SignOutButton } from '@/components/sign-out-button'
 import type { PortalStudent } from './access'
 
-// Only College Timeline has a page behind it so far. The rest render as inert
-// text so the shape of the portal is visible without pretending to navigate.
-const PLACEHOLDER_LINKS = [
-  'My Schools',
-  'My Essays',
-  'My Activities',
-  'Settings',
-]
+// Everything else now has a real route; Settings is the last inert item, shown
+// as plain text rather than pretending to navigate.
+const PLACEHOLDER_LINKS = ['Settings']
 
 /**
  * Client-side because the active studentId lives in a route segment BELOW this
@@ -36,11 +31,21 @@ export function PortalSidebar({ students }: { students: PortalStudent[] }) {
     router.push(`/portal/${studentId}/${section}`)
   }
 
-  // Real sections, in sidebar order. Falls back to /portal before an id is
-  // known, so the links still point somewhere real while the redirect runs.
+  // Real sections, in sidebar order: the two the portal opened with, then the
+  // record sections in the order a student works through them. Falls back to
+  // /portal before an id is known, so the links still point somewhere real
+  // while the redirect runs.
   const sections = [
     { segment: 'overview', label: 'My Info' },
     { segment: 'timeline', label: 'College Timeline' },
+    { segment: 'schools', label: 'Schools' },
+    { segment: 'scholarships', label: 'Scholarships' },
+    { segment: 'essays', label: 'Essays' },
+    { segment: 'activities', label: 'Activities & Honors' },
+    { segment: 'test-scores', label: 'Test Scores' },
+    { segment: 'notes', label: 'Notes' },
+    { segment: 'docs', label: 'Documents' },
+    { segment: 'parents', label: 'Parent Access' },
   ].map(({ segment, label }) => ({
     label,
     href: activeStudentId ? `/portal/${activeStudentId}/${segment}` : '/portal',

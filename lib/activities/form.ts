@@ -5,8 +5,8 @@
 export type ActivityFormInput = {
   name: string
   yearsParticipated: string
-  hoursPerWeek: string
-  weeksPerYear: string
+  /** Free text from the form; parsed to a numeric column server-side. */
+  totalHours: string
   description: string
   leadershipActions: string
 }
@@ -14,8 +14,7 @@ export type ActivityFormInput = {
 export const EMPTY_ACTIVITY_FORM: ActivityFormInput = {
   name: '',
   yearsParticipated: '',
-  hoursPerWeek: '',
-  weeksPerYear: '',
+  totalHours: '',
   description: '',
   leadershipActions: '',
 }

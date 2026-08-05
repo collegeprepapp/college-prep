@@ -25,8 +25,7 @@ export type ActivityRow = {
   id: string
   name: string
   yearsParticipated: string
-  hoursPerWeek: number | null
-  weeksPerYear: number | null
+  totalHours: number | null
   description: string
   leadershipActions: string
 }
@@ -38,8 +37,7 @@ function toFormInput(row: ActivityRow): ActivityFormInput {
   return {
     name: row.name,
     yearsParticipated: row.yearsParticipated,
-    hoursPerWeek: row.hoursPerWeek === null ? '' : String(row.hoursPerWeek),
-    weeksPerYear: row.weeksPerYear === null ? '' : String(row.weeksPerYear),
+    totalHours: row.totalHours === null ? '' : String(row.totalHours),
     description: row.description,
     leadershipActions: row.leadershipActions,
   }
@@ -96,40 +94,22 @@ function ActivityFields({
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-2">
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor={`${idPrefix}-hours`} className="text-sm font-medium">
-              Hrs/wk
-            </label>
-            <input
-              id={`${idPrefix}-hours`}
-              type="number"
-              min={0}
-              max={168}
-              step={1}
-              disabled={disabled}
-              value={values.hoursPerWeek ?? ''}
-              onChange={(event) => set('hoursPerWeek', event.target.value)}
-              className={INPUT_CLASS}
-            />
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor={`${idPrefix}-weeks`} className="text-sm font-medium">
-              Wks/yr
-            </label>
-            <input
-              id={`${idPrefix}-weeks`}
-              type="number"
-              min={0}
-              max={52}
-              step={1}
-              disabled={disabled}
-              value={values.weeksPerYear ?? ''}
-              onChange={(event) => set('weeksPerYear', event.target.value)}
-              className={INPUT_CLASS}
-            />
-          </div>
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor={`${idPrefix}-total-hours`} className="text-sm font-medium">
+            Total Hours
+          </label>
+          <input
+            id={`${idPrefix}-total-hours`}
+            type="number"
+            min={0}
+            max={10000}
+            // Halves allowed: the column is numeric, not an integer.
+            step={0.5}
+            disabled={disabled}
+            value={values.totalHours ?? ''}
+            onChange={(event) => set('totalHours', event.target.value)}
+            className={INPUT_CLASS}
+          />
         </div>
       </div>
 
@@ -220,8 +200,8 @@ function ActivityItem({
   }
 
   const commitment =
-    row.hoursPerWeek !== null || row.weeksPerYear !== null
-      ? `${row.hoursPerWeek ?? '—'} hrs/wk · ${row.weeksPerYear ?? '—'} wks/yr`
+    row.totalHours !== null
+      ? `${row.totalHours} ${row.totalHours === 1 ? 'hour' : 'hours'}`
       : ''
 
   return (

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { createParentInvite } from '../../actions'
+import { createParentInvite } from '@/lib/parent-links/actions'
 
 /**
  * Replaces the old paste-a-UUID form: the student is fixed by the page, so the
