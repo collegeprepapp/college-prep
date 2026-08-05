@@ -67,6 +67,16 @@ export const COMMON_APP_ACTIVITY_LIMIT = 10
 export const COMMON_APP_HONOR_LIMIT = 5
 
 /**
+ * Additional Information, counted in WORDS rather than characters — the only
+ * limit here that is, which is why it sits apart from CHARACTER_LIMITS below
+ * instead of inside it.
+ *
+ * Guidance like the rest: nothing truncates and nothing rejects. See migration
+ * 023 for why the cap is not a check constraint.
+ */
+export const COMMON_APP_ADDITIONAL_INFO_WORD_LIMIT = 650
+
+/**
  * The form's character limits.
  *
  * Also guidance rather than enforcement — no `maxLength` on the inputs and no

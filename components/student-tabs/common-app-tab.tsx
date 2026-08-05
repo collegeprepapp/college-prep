@@ -13,6 +13,7 @@ import {
   ACTIVITY_TYPES,
   CHARACTER_LIMITS,
   COMMON_APP_ACTIVITY_LIMIT,
+  COMMON_APP_ADDITIONAL_INFO_WORD_LIMIT,
   COMMON_APP_HONOR_LIMIT,
   EMPTY_COMMON_APP_ACTIVITY,
   EMPTY_COMMON_APP_HONOR,
@@ -35,6 +36,7 @@ import {
   deleteCommonAppHonor,
   reorderCommonAppActivities,
   reorderCommonAppHonors,
+  saveCommonAppAdditionalInfo,
   updateCommonAppActivity,
   createCommonAppFamilyMember,
   deleteCommonAppFamilyMember,
@@ -1608,6 +1610,111 @@ function TestingSection({
 }
 
 // ---------------------------------------------------------------------------
+// Additional Information
+// ---------------------------------------------------------------------------
+
+/**
+ * Whitespace-separated runs.
+ *
+ * Approximate on purpose — the Common App's own counter, Word, and Google Docs
+ * all disagree at the margins (hyphenates, em-dashes, initials). Close enough to
+ * steer with, which is all it is for, and the reason the limit is guidance
+ * rather than something that blocks a save.
+ */
+function countWords(value: string): number {
+  const trimmed = value.trim()
+  return trimmed ? trimmed.split(/\s+/).length : 0
+}
+
+function AdditionalInfoSection({
+  additionalInfo,
+  studentId,
+}: {
+  additionalInfo: string
+  studentId: string
+}) {
+  const router = useRouter()
+  const [content, setContent] = useState(additionalInfo)
+  const [error, setError] = useState<string | null>(null)
+  const [saved, setSaved] = useState(false)
+  const [isBusy, setIsBusy] = useState(false)
+
+  const words = countWords(content)
+  const over = words > COMMON_APP_ADDITIONAL_INFO_WORD_LIMIT
+
+  async function save() {
+    setError(null)
+    setIsBusy(true)
+
+    const result = await saveCommonAppAdditionalInfo(studentId, content)
+    setIsBusy(false)
+
+    if (!result.ok) {
+      setError(result.error)
+      return
+    }
+
+    setSaved(true)
+    router.refresh()
+  }
+
+  return (
+    <section className="flex flex-col gap-4 border-t border-black/10 pt-8 dark:border-white/15">
+      <div>
+        <h3 className="text-base font-medium">Additional Information</h3>
+        <p className="mt-0.5 text-xs opacity-60">
+          Anything else colleges should know — most often the context behind a
+          grade, a gap, or a change of school. Optional, and better left blank
+          than filled for the sake of it.
+        </p>
+      </div>
+
+      <div className="flex flex-col gap-1.5">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <label htmlFor="ca-additional-info" className="text-sm font-medium">
+            Your answer
+          </label>
+          <span
+            className={`text-xs ${over ? 'font-medium text-red-600 dark:text-red-400' : 'opacity-60'}`}
+          >
+            {words}/{COMMON_APP_ADDITIONAL_INFO_WORD_LIMIT} words
+            {over ? ' — over the Common App limit' : ''}
+          </span>
+        </div>
+
+        <textarea
+          id="ca-additional-info"
+          rows={12}
+          disabled={isBusy}
+          value={content}
+          onChange={(event) => {
+            setContent(event.target.value)
+            setSaved(false)
+          }}
+          className={INPUT_CLASS}
+        />
+      </div>
+
+      {error && <ErrorBanner message={error} />}
+
+      <div className="flex items-center gap-3">
+        <button
+          type="button"
+          onClick={save}
+          disabled={isBusy}
+          className={PRIMARY_BUTTON_CLASS}
+        >
+          {isBusy ? 'Saving…' : 'Save'}
+        </button>
+        {saved && (
+          <span className="text-sm opacity-70">Additional information saved.</span>
+        )}
+      </div>
+    </section>
+  )
+}
+
+// ---------------------------------------------------------------------------
 // Tab
 // ---------------------------------------------------------------------------
 
@@ -1628,6 +1735,7 @@ export function CommonAppTab({
   scoreOptions,
   profile,
   family,
+  additionalInfo,
   studentId,
 }: {
   activities: CommonAppActivityRow[]
@@ -1638,6 +1746,7 @@ export function CommonAppTab({
   scoreOptions: TestScoreOption[]
   profile: CommonAppProfileData
   family: CommonAppFamilyRow[]
+  additionalInfo: string
   studentId: string
 }) {
   const router = useRouter()
@@ -1874,6 +1983,11 @@ export function CommonAppTab({
           />
         )}
       </section>
+
+      <AdditionalInfoSection
+        additionalInfo={additionalInfo}
+        studentId={studentId}
+      />
     </div>
   )
 }

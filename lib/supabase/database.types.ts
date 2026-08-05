@@ -304,6 +304,35 @@ export type Database = {
           },
         ]
       }
+      common_app_additional_info: {
+        Row: {
+          content: string | null
+          id: string
+          student_id: string
+          updated_at: string
+        }
+        Insert: {
+          content?: string | null
+          id?: string
+          student_id: string
+          updated_at?: string
+        }
+        Update: {
+          content?: string | null
+          id?: string
+          student_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "common_app_additional_info_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: true
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       common_app_family_members: {
         Row: {
           added_by: string | null

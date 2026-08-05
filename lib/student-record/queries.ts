@@ -495,6 +495,24 @@ export async function fetchCommonAppTesting(
  * than null — the form always has something to bind to, and the upsert sorts
  * out insert-versus-update on save.
  */
+/**
+ * Additional Information. Never null, same as the other two singletons: no row
+ * exists until someone saves, so an empty string is the unsaved state and the
+ * upsert decides on save whether that is an insert or an update.
+ */
+export async function fetchCommonAppAdditionalInfo(
+  supabase: Client,
+  studentId: string
+): Promise<string> {
+  const { data } = await supabase
+    .from('common_app_additional_info')
+    .select('content')
+    .eq('student_id', studentId)
+    .maybeSingle()
+
+  return data?.content ?? ''
+}
+
 export async function fetchCommonAppProfileAndFamily(
   supabase: Client,
   studentId: string

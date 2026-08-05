@@ -445,6 +445,40 @@ export async function reorderCommonAppHonors(
  * Both the insert and update policies from 021 apply, since the statement may
  * take either path; RLS covers both.
  */
+/**
+ * Additional Information — a singleton like testing and profile (023).
+ *
+ * The word cap in constants.ts is not enforced here on purpose: rejecting an
+ * over-length draft server-side would lose a paste the student has not trimmed
+ * yet, and this box is where the hardest-to-rewrite text goes.
+ */
+export async function saveCommonAppAdditionalInfo(
+  studentId: string,
+  content: string
+): Promise<CommonAppResult> {
+  if (!UUID_PATTERN.test(studentId.trim())) {
+    return { ok: false, error: 'That does not look like a valid student.' }
+  }
+
+  const supabase = await createClient()
+
+  const { error } = await supabase.from('common_app_additional_info').upsert(
+    {
+      student_id: studentId.trim(),
+      content: optional(content),
+    },
+    { onConflict: 'student_id' }
+  )
+
+  if (error) {
+    console.error('saveCommonAppAdditionalInfo: upsert failed', error)
+    return { ok: false, error: 'Could not save the additional information.' }
+  }
+
+  revalidateStudentRecord(studentId)
+  return { ok: true }
+}
+
 export async function saveCommonAppTesting(
   studentId: string,
   input: CommonAppTestingInput

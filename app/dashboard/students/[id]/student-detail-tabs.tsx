@@ -218,6 +218,7 @@ export function StudentDetailTabs({
   commonAppTesting,
   testScoreOptions,
   commonAppProfile,
+  commonAppAdditionalInfo,
   commonAppFamily,
   studentId,
   viewerProfileId,
@@ -241,6 +242,7 @@ export function StudentDetailTabs({
   commonAppTesting: CommonAppTestingData
   testScoreOptions: TestScoreOption[]
   commonAppProfile: CommonAppProfileData
+  commonAppAdditionalInfo: string
   commonAppFamily: CommonAppFamilyRow[]
   studentId: string
   viewerProfileId: string
@@ -357,6 +359,7 @@ export function StudentDetailTabs({
             testing={commonAppTesting}
             scoreOptions={testScoreOptions}
             profile={commonAppProfile}
+            additionalInfo={commonAppAdditionalInfo}
             family={commonAppFamily}
             studentId={studentId}
           />

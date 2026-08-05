@@ -11,6 +11,7 @@ import {
   fetchTestScores,
   fetchCommonAppPlanner,
   fetchCommonAppTesting,
+  fetchCommonAppAdditionalInfo,
   fetchCommonAppProfileAndFamily,
 } from '@/lib/student-record/queries'
 import {
@@ -99,6 +100,8 @@ export default async function StudentDetailPage({
   const { profile: commonAppProfile, family: commonAppFamily } =
     await fetchCommonAppProfileAndFamily(supabase, id)
 
+  const commonAppAdditionalInfo = await fetchCommonAppAdditionalInfo(supabase, id)
+
   return (
     <Shell>
       <h1 className="text-2xl font-semibold tracking-tight">
@@ -132,6 +135,7 @@ export default async function StudentDetailPage({
         commonAppTesting={testing}
         testScoreOptions={scoreOptions}
         commonAppProfile={commonAppProfile}
+        commonAppAdditionalInfo={commonAppAdditionalInfo}
         commonAppFamily={commonAppFamily}
         studentId={student.id}
         viewerProfileId={userId}
