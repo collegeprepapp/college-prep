@@ -1,6 +1,6 @@
 'use server'
 
-import { revalidatePath } from 'next/cache'
+import { revalidateStudentRecord } from '@/lib/student-record/revalidate'
 import { createClient } from '@/lib/supabase/server'
 import { UUID_PATTERN } from '@/lib/students/form'
 
@@ -75,7 +75,7 @@ export async function createNote(
     }
   }
 
-  revalidatePath(`/dashboard/students/${studentId.trim()}`)
+  revalidateStudentRecord(studentId.trim())
   return { ok: true }
 }
 
@@ -118,7 +118,7 @@ export async function updateNote(
     return { ok: false, error: 'Only the author can edit this note.' }
   }
 
-  revalidatePath(`/dashboard/students/${studentId.trim()}`)
+  revalidateStudentRecord(studentId.trim())
   return { ok: true }
 }
 
@@ -147,6 +147,6 @@ export async function deleteNote(
     return { ok: false, error: 'Only the author can delete this note.' }
   }
 
-  revalidatePath(`/dashboard/students/${studentId.trim()}`)
+  revalidateStudentRecord(studentId.trim())
   return { ok: true }
 }

@@ -12,17 +12,17 @@ import {
 } from '@/components/student-form-fields'
 import { EditIconButton } from '@/components/icon-button'
 import { DEMO_TEST_SCORES } from './demo-data'
-import { DocsTab, type DocumentRow } from './docs-tab'
-import { ActivitiesTab, type ActivityRow } from './activities-tab'
-import { HonorsTab, type HonorRow } from './honors-tab'
+import { DocsTab, type DocumentRow } from '@/components/student-tabs/docs-tab'
+import { ActivitiesTab, type ActivityRow } from '@/components/student-tabs/activities-tab'
+import { HonorsTab, type HonorRow } from '@/components/student-tabs/honors-tab'
 import {
   EssaysTab,
   type EssayRow,
   type EssaySchoolOption,
-} from './essays-tab'
-import { ScholarshipsTab, type ScholarshipRow } from './scholarships-tab'
-import { SchoolsTab, type ApplicationRow } from './schools-tab'
-import { NotesTab, type NoteRow } from './notes-tab'
+} from '@/components/student-tabs/essays-tab'
+import { ScholarshipsTab, type ScholarshipRow } from '@/components/student-tabs/scholarships-tab'
+import { SchoolsTab, type ApplicationRow } from '@/components/student-tabs/schools-tab'
+import { NotesTab, type NoteRow } from '@/components/student-tabs/notes-tab'
 import { InviteParentForm } from './invite-parent-form'
 
 const TABS = [

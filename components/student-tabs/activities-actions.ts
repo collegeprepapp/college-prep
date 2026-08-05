@@ -1,6 +1,6 @@
 'use server'
 
-import { revalidatePath } from 'next/cache'
+import { revalidateStudentRecord } from '@/lib/student-record/revalidate'
 import { createClient } from '@/lib/supabase/server'
 import type { ActivityFormInput } from '@/lib/activities/form'
 import { UUID_PATTERN } from '@/lib/students/form'
@@ -126,7 +126,7 @@ export async function createActivity(
     }
   }
 
-  revalidatePath(`/dashboard/students/${studentId.trim()}`)
+  revalidateStudentRecord(studentId.trim())
   return { ok: true }
 }
 
@@ -163,7 +163,7 @@ export async function updateActivity(
     return { ok: false, error: 'Could not save changes.' }
   }
 
-  revalidatePath(`/dashboard/students/${studentId.trim()}`)
+  revalidateStudentRecord(studentId.trim())
   return { ok: true }
 }
 
@@ -192,7 +192,7 @@ export async function deleteActivity(
     return { ok: false, error: 'Could not remove this activity.' }
   }
 
-  revalidatePath(`/dashboard/students/${studentId.trim()}`)
+  revalidateStudentRecord(studentId.trim())
   return { ok: true }
 }
 
@@ -258,6 +258,6 @@ export async function reorderActivities(
     return { ok: false, error: 'Could not save the new order.' }
   }
 
-  revalidatePath(`/dashboard/students/${studentId.trim()}`)
+  revalidateStudentRecord(studentId.trim())
   return { ok: true }
 }

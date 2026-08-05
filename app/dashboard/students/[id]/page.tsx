@@ -1,11 +1,11 @@
 import { requireAdmin } from '../../access'
-import type { NoteRow } from './notes-tab'
-import type { ApplicationRow } from './schools-tab'
-import type { ScholarshipRow } from './scholarships-tab'
-import type { EssayRow, EssaySchoolOption } from './essays-tab'
-import type { ActivityRow } from './activities-tab'
-import type { HonorRow } from './honors-tab'
-import type { DocumentRow } from './docs-tab'
+import type { NoteRow } from '@/components/student-tabs/notes-tab'
+import type { ApplicationRow } from '@/components/student-tabs/schools-tab'
+import type { ScholarshipRow } from '@/components/student-tabs/scholarships-tab'
+import type { EssayRow, EssaySchoolOption } from '@/components/student-tabs/essays-tab'
+import type { ActivityRow } from '@/components/student-tabs/activities-tab'
+import type { HonorRow } from '@/components/student-tabs/honors-tab'
+import type { DocumentRow } from '@/components/student-tabs/docs-tab'
 import { formatFileSize } from '@/lib/documents/format'
 import {
   StudentDetailTabs,

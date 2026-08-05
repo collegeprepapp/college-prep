@@ -1,6 +1,6 @@
 'use server'
 
-import { revalidatePath } from 'next/cache'
+import { revalidateStudentRecord } from '@/lib/student-record/revalidate'
 import { createClient } from '@/lib/supabase/server'
 import type { HonorFormInput } from '@/lib/honors/form'
 import { UUID_PATTERN } from '@/lib/students/form'
@@ -89,7 +89,7 @@ export async function createHonor(
     }
   }
 
-  revalidatePath(`/dashboard/students/${studentId.trim()}`)
+  revalidateStudentRecord(studentId.trim())
   return { ok: true }
 }
 
@@ -125,7 +125,7 @@ export async function updateHonor(
     return { ok: false, error: 'Could not save changes.' }
   }
 
-  revalidatePath(`/dashboard/students/${studentId.trim()}`)
+  revalidateStudentRecord(studentId.trim())
   return { ok: true }
 }
 
@@ -154,7 +154,7 @@ export async function deleteHonor(
     return { ok: false, error: 'Could not remove this honor.' }
   }
 
-  revalidatePath(`/dashboard/students/${studentId.trim()}`)
+  revalidateStudentRecord(studentId.trim())
   return { ok: true }
 }
 
@@ -204,6 +204,6 @@ export async function reorderHonors(
     return { ok: false, error: 'Could not save the new order.' }
   }
 
-  revalidatePath(`/dashboard/students/${studentId.trim()}`)
+  revalidateStudentRecord(studentId.trim())
   return { ok: true }
 }

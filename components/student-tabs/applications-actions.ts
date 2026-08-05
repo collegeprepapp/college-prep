@@ -1,6 +1,6 @@
 'use server'
 
-import { revalidatePath } from 'next/cache'
+import { revalidateStudentRecord } from '@/lib/student-record/revalidate'
 import { createClient } from '@/lib/supabase/server'
 import { isApplicationStatus } from '@/lib/college-applications/status'
 import { UUID_PATTERN } from '@/lib/students/form'
@@ -148,7 +148,7 @@ export async function createApplication(
     }
   }
 
-  revalidatePath(`/dashboard/students/${studentId.trim()}`)
+  revalidateStudentRecord(studentId.trim())
   return { ok: true }
 }
 
@@ -187,7 +187,7 @@ export async function updateApplication(
     return { ok: false, error: 'Could not save changes.' }
   }
 
-  revalidatePath(`/dashboard/students/${studentId.trim()}`)
+  revalidateStudentRecord(studentId.trim())
   return { ok: true }
 }
 
@@ -216,6 +216,6 @@ export async function deleteApplication(
     return { ok: false, error: 'Could not remove this school.' }
   }
 
-  revalidatePath(`/dashboard/students/${studentId.trim()}`)
+  revalidateStudentRecord(studentId.trim())
   return { ok: true }
 }

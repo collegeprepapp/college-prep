@@ -1,6 +1,6 @@
 'use server'
 
-import { revalidatePath } from 'next/cache'
+import { revalidateStudentRecord } from '@/lib/student-record/revalidate'
 import { createClient } from '@/lib/supabase/server'
 import { isScholarshipStatus } from '@/lib/scholarships/status'
 import type { ScholarshipFormInput } from '@/lib/scholarships/form'
@@ -110,7 +110,7 @@ export async function createScholarship(
     }
   }
 
-  revalidatePath(`/dashboard/students/${studentId.trim()}`)
+  revalidateStudentRecord(studentId.trim())
   return { ok: true }
 }
 
@@ -149,7 +149,7 @@ export async function updateScholarship(
     return { ok: false, error: 'Could not save changes.' }
   }
 
-  revalidatePath(`/dashboard/students/${studentId.trim()}`)
+  revalidateStudentRecord(studentId.trim())
   return { ok: true }
 }
 
@@ -178,6 +178,6 @@ export async function deleteScholarship(
     return { ok: false, error: 'Could not remove this scholarship.' }
   }
 
-  revalidatePath(`/dashboard/students/${studentId.trim()}`)
+  revalidateStudentRecord(studentId.trim())
   return { ok: true }
 }

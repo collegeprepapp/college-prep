@@ -1,6 +1,6 @@
 'use server'
 
-import { revalidatePath } from 'next/cache'
+import { revalidateStudentRecord } from '@/lib/student-record/revalidate'
 import { createClient } from '@/lib/supabase/server'
 import { UUID_PATTERN } from '@/lib/students/form'
 
@@ -78,7 +78,7 @@ export async function recordDocument(
     return { ok: false, error: 'The file uploaded but could not be saved.' }
   }
 
-  revalidatePath(`/dashboard/students/${student}`)
+  revalidateStudentRecord(student)
   return { ok: true }
 }
 
@@ -177,6 +177,6 @@ export async function deleteDocument(
     )
   }
 
-  revalidatePath(`/dashboard/students/${studentId.trim()}`)
+  revalidateStudentRecord(studentId.trim())
   return { ok: true }
 }

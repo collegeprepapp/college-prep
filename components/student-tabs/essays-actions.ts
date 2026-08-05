@@ -1,6 +1,6 @@
 'use server'
 
-import { revalidatePath } from 'next/cache'
+import { revalidateStudentRecord } from '@/lib/student-record/revalidate'
 import { createClient } from '@/lib/supabase/server'
 import { countWords, isEssayType } from '@/lib/essays/types'
 import type { EssayMetaInput } from '@/lib/essays/form'
@@ -116,7 +116,7 @@ export async function createEssay(
     }
   }
 
-  revalidatePath(`/dashboard/students/${studentId.trim()}`)
+  revalidateStudentRecord(studentId.trim())
   return { ok: true, essayId: data.id }
 }
 
@@ -188,7 +188,7 @@ export async function saveEssay(
     console.error('saveEssay: version snapshot failed', versionError)
   }
 
-  revalidatePath(`/dashboard/students/${studentId.trim()}`)
+  revalidateStudentRecord(studentId.trim())
   return { ok: true }
 }
 
@@ -218,7 +218,7 @@ export async function deleteEssay(
     return { ok: false, error: 'Could not delete this essay.' }
   }
 
-  revalidatePath(`/dashboard/students/${studentId.trim()}`)
+  revalidateStudentRecord(studentId.trim())
   return { ok: true }
 }
 
@@ -384,6 +384,6 @@ export async function restoreEssayVersion(
     console.error('restoreEssayVersion: snapshot failed', snapshotError)
   }
 
-  revalidatePath(`/dashboard/students/${studentId.trim()}`)
+  revalidateStudentRecord(studentId.trim())
   return { ok: true }
 }
