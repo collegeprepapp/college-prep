@@ -10,13 +10,10 @@ import {
   SECONDARY_BUTTON_CLASS,
   StudentFormFields,
 } from '@/components/student-form-fields'
+import { EditIconButton } from '@/components/icon-button'
 import { DEMO_TEST_SCORES } from './demo-data'
-import {
-  ActivitiesTab,
-  DocsTab,
-  EssaysTab,
-  ScholarshipsTab,
-} from './demo-tabs'
+import { ActivitiesTab, DocsTab, EssaysTab } from './demo-tabs'
+import { ScholarshipsTab, type ScholarshipRow } from './scholarships-tab'
 import { SchoolsTab, type ApplicationRow } from './schools-tab'
 import { NotesTab, type NoteRow } from './notes-tab'
 import { InviteParentForm } from './invite-parent-form'
@@ -38,7 +35,6 @@ type Tab = (typeof TABS)[number]
 // Tabs backed by hardcoded demo data rather than the database — see
 // demo-tabs.tsx. Nothing in them reads from or writes to Supabase yet.
 const DEMO_TABS: Record<string, () => React.ReactElement> = {
-  Scholarships: ScholarshipsTab,
   Essays: EssaysTab,
   Activities: ActivitiesTab,
   Docs: DocsTab,
@@ -235,13 +231,11 @@ function TestScoresTab({ scores }: { scores: TestScoreRow[] }) {
             </span>
 
             {/* Inert: editing a score is not built yet. */}
-            <button
-              type="button"
-              aria-label={`Edit ${score.test_type} score`}
-              className={`shrink-0 ${SECONDARY_BUTTON_CLASS}`}
-            >
-              Edit
-            </button>
+            <span className="shrink-0">
+              <EditIconButton
+                label={`Edit ${score.test_type} score of ${score.score}`}
+              />
+            </span>
           </li>
         ))}
       </ul>
@@ -261,6 +255,7 @@ export function StudentDetailTabs({
   parentLinks,
   notes,
   applications,
+  scholarships,
   studentId,
   viewerProfileId,
   canEdit,
@@ -270,6 +265,7 @@ export function StudentDetailTabs({
   parentLinks: ParentLinkRow[]
   notes: NoteRow[]
   applications: ApplicationRow[]
+  scholarships: ScholarshipRow[]
   studentId: string
   viewerProfileId: string
   // Admin, or the student viewing their own record — decided by the page's
@@ -309,6 +305,10 @@ export function StudentDetailTabs({
       <div role="tabpanel" aria-label={activeTab}>
         {activeTab === 'Overview' && (
           <OverviewTab student={student} canEdit={canEdit} />
+        )}
+
+        {activeTab === 'Scholarships' && (
+          <ScholarshipsTab scholarships={scholarships} studentId={studentId} />
         )}
 
         {activeTab === 'Schools' && (

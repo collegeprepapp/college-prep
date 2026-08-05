@@ -22,6 +22,10 @@ import {
   EMPTY_APPLICATION_FORM,
   type ApplicationFormInput,
 } from '@/lib/college-applications/form'
+import {
+  DeleteIconButton,
+  EditIconButton,
+} from '@/components/icon-button'
 import { ApplicationFormFields } from './application-form-fields'
 
 /**
@@ -278,7 +282,9 @@ const COLUMNS: Column[] = [
   },
   {
     key: 'scholarship',
-    label: 'Scholarship',
+    // Renamed to distinguish it from the Scholarships tab, which tracks
+    // outside awards not tied to any one school.
+    label: 'School Merit Aid',
     sortValue: (row) => row.scholarshipAmount,
     align: 'right',
     render: (row) => dash(row.scholarshipAmountLabel),
@@ -393,22 +399,14 @@ function DisplayRow({
             </>
           ) : (
             <>
-              <button
-                type="button"
+              <EditIconButton
+                label={`Edit ${row.schoolName}`}
                 onClick={onEdit}
-                aria-label={`Edit ${row.schoolName}`}
-                className={SECONDARY_BUTTON_CLASS}
-              >
-                Edit
-              </button>
-              <button
-                type="button"
+              />
+              <DeleteIconButton
+                label={`Delete ${row.schoolName}`}
                 onClick={() => setIsConfirmingDelete(true)}
-                aria-label={`Delete ${row.schoolName}`}
-                className={SECONDARY_BUTTON_CLASS}
-              >
-                Delete
-              </button>
+              />
             </>
           )}
         </div>

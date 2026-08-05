@@ -2,6 +2,10 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import {
+  DeleteIconButton,
+  EditIconButton,
+} from '@/components/icon-button'
 import { deleteTemplate, updateTemplate } from './actions'
 import {
   AUDIENCE_LABELS,
@@ -166,20 +170,14 @@ export function TemplateRow({ template }: { template: TemplateRowData }) {
             </>
           ) : (
             <>
-              <button
-                type="button"
+              <EditIconButton
+                label={`Edit template: ${template.title}`}
                 onClick={startEditing}
-                className={SECONDARY_BUTTON_CLASS}
-              >
-                Edit
-              </button>
-              <button
-                type="button"
+              />
+              <DeleteIconButton
+                label={`Delete template: ${template.title}`}
                 onClick={() => setIsConfirmingDelete(true)}
-                className={SECONDARY_BUTTON_CLASS}
-              >
-                Delete
-              </button>
+              />
             </>
           )}
         </div>

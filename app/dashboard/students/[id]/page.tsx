@@ -1,6 +1,7 @@
 import { requireAdmin } from '../../access'
 import type { NoteRow } from './notes-tab'
 import type { ApplicationRow } from './schools-tab'
+import type { ScholarshipRow } from './scholarships-tab'
 import {
   StudentDetailTabs,
   type ParentLinkRow,
@@ -182,6 +183,24 @@ export default async function StudentDetailPage({
     notes: row.notes ?? '',
   }))
 
+  const { data: scholarshipRows } = await supabase
+    .from('scholarships')
+    .select('id, name, amount, status, deadline, link, notes')
+    .eq('student_id', id)
+    .order('name', { ascending: true })
+
+  const scholarships: ScholarshipRow[] = (scholarshipRows ?? []).map((row) => ({
+    id: row.id,
+    name: row.name,
+    amount: row.amount,
+    amountLabel: row.amount === null ? '' : currency.format(row.amount),
+    status: row.status,
+    deadline: row.deadline ?? '',
+    deadlineLabel: formatDate(row.deadline),
+    link: row.link ?? '',
+    notes: row.notes ?? '',
+  }))
+
   // Flattened here rather than passing the Map across the server/client
   // boundary, so the client component gets plain rows it can render directly.
   const parentLinkRows: ParentLinkRow[] = parentLinks.map((link) => ({
@@ -212,6 +231,7 @@ export default async function StudentDetailPage({
         parentLinks={parentLinkRows}
         notes={noteRowsForClient}
         applications={applications}
+        scholarships={scholarships}
         studentId={student.id}
         viewerProfileId={userId}
         // Everyone who reaches this page is an admin.

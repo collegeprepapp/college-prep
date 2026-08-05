@@ -1,17 +1,13 @@
 'use client'
 
-import {
-  PRIMARY_BUTTON_CLASS,
-  SECONDARY_BUTTON_CLASS,
-} from '@/components/student-form-fields'
+import { PRIMARY_BUTTON_CLASS } from '@/components/student-form-fields'
+import { EditIconButton } from '@/components/icon-button'
 import {
   DEMO_ACTIVITIES,
   DEMO_DOCS,
   DEMO_ESSAYS,
-  DEMO_SCHOLARSHIPS,
   type ActivityCategory,
   type DemoDoc,
-  type ScholarshipStatus,
 } from './demo-data'
 
 /**
@@ -70,55 +66,6 @@ const TD_CLASS = 'py-2 pr-4'
 const TR_CLASS = 'border-b border-black/5 dark:border-white/10'
 
 // ---------------------------------------------------------------------------
-// Scholarships
-// ---------------------------------------------------------------------------
-
-const SCHOLARSHIP_STATUS_TONE: Record<ScholarshipStatus, Tone> = {
-  Researching: 'neutral',
-  Applied: 'amber',
-  Awarded: 'green',
-  Denied: 'red',
-}
-
-export function ScholarshipsTab() {
-  return (
-    <div className="flex flex-col gap-4">
-      <TabHeader title="Scholarships" action="Add Scholarship" />
-
-      <div className="overflow-x-auto">
-        <table className={TABLE_CLASS}>
-          <thead>
-            <tr className={THEAD_ROW_CLASS}>
-              <th className={TH_CLASS}>Scholarship</th>
-              <th className={TH_CLASS}>Amount</th>
-              <th className={TH_CLASS}>Status</th>
-              <th className={TH_CLASS}>Deadline</th>
-            </tr>
-          </thead>
-          <tbody>
-            {DEMO_SCHOLARSHIPS.map((scholarship) => (
-              <tr key={scholarship.id} className={TR_CLASS}>
-                <td className={`${TD_CLASS} font-medium`}>
-                  {scholarship.name}
-                </td>
-                <td className={TD_CLASS}>{scholarship.amount}</td>
-                <td className={TD_CLASS}>
-                  <Badge
-                    label={scholarship.status}
-                    tone={SCHOLARSHIP_STATUS_TONE[scholarship.status]}
-                  />
-                </td>
-                <td className={TD_CLASS}>{scholarship.deadline}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  )
-}
-
-// ---------------------------------------------------------------------------
 // Essays
 // ---------------------------------------------------------------------------
 
@@ -142,13 +89,9 @@ export function EssaysTab() {
             </div>
 
             {/* Inert, like every other action in this file. */}
-            <button
-              type="button"
-              aria-label={`Edit ${essay.title}`}
-              className={`shrink-0 ${SECONDARY_BUTTON_CLASS}`}
-            >
-              Edit
-            </button>
+            <span className="shrink-0">
+              <EditIconButton label={`Edit essay: ${essay.title}`} />
+            </span>
           </li>
         ))}
       </ul>

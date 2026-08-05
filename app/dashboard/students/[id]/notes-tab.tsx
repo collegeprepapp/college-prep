@@ -8,6 +8,10 @@ import {
   PRIMARY_BUTTON_CLASS,
   SECONDARY_BUTTON_CLASS,
 } from '@/components/student-form-fields'
+import {
+  DeleteIconButton,
+  EditIconButton,
+} from '@/components/icon-button'
 import { createNote, deleteNote, updateNote } from './notes-actions'
 
 export type NoteRow = {
@@ -217,20 +221,14 @@ function NoteCard({
             </>
           ) : (
             <>
-              <button
-                type="button"
+              <EditIconButton
+                label={`Edit note by ${note.authorName} from ${note.createdAtLabel}`}
                 onClick={startEditing}
-                className={SECONDARY_BUTTON_CLASS}
-              >
-                Edit
-              </button>
-              <button
-                type="button"
+              />
+              <DeleteIconButton
+                label={`Delete note by ${note.authorName} from ${note.createdAtLabel}`}
                 onClick={() => setIsConfirmingDelete(true)}
-                className={SECONDARY_BUTTON_CLASS}
-              >
-                Delete
-              </button>
+              />
             </>
           )}
         </div>

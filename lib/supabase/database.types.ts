@@ -303,6 +303,63 @@ export type Database = {
           },
         ]
       }
+      scholarships: {
+        Row: {
+          added_by: string | null
+          amount: number | null
+          created_at: string
+          deadline: string | null
+          id: string
+          link: string | null
+          name: string
+          notes: string | null
+          status: string
+          student_id: string
+          updated_at: string
+        }
+        Insert: {
+          added_by?: string | null
+          amount?: number | null
+          created_at?: string
+          deadline?: string | null
+          id?: string
+          link?: string | null
+          name: string
+          notes?: string | null
+          status?: string
+          student_id: string
+          updated_at?: string
+        }
+        Update: {
+          added_by?: string | null
+          amount?: number | null
+          created_at?: string
+          deadline?: string | null
+          id?: string
+          link?: string | null
+          name?: string
+          notes?: string | null
+          status?: string
+          student_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scholarships_added_by_fkey"
+            columns: ["added_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scholarships_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       schools: {
         Row: {
           created_at: string

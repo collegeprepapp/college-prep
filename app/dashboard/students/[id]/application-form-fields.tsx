@@ -143,7 +143,7 @@ export function ApplicationFormFields({
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             {textField('dateToured', 'Date Toured', 'date')}
             {textField('goalCompletionDate', 'Goal Completion Date', 'date')}
-            {textField('scholarshipAmount', 'Scholarship Amount', 'text', {
+            {textField('scholarshipAmount', 'Merit Aid from School', 'text', {
               inputMode: 'decimal',
               placeholder: '0.00',
             })}

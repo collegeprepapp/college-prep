@@ -30,47 +30,6 @@ export const DEMO_TEST_SCORES: DemoTestScore[] = [
   { id: 'score-3', test_type: 'SAT', score: 1280, test_date: '2026-03-14' },
 ]
 
-export type ScholarshipStatus = 'Researching' | 'Applied' | 'Awarded' | 'Denied'
-
-export type DemoScholarship = {
-  id: string
-  name: string
-  amount: string
-  status: ScholarshipStatus
-  deadline: string
-}
-
-export const DEMO_SCHOLARSHIPS: DemoScholarship[] = [
-  {
-    id: 'scholarship-1',
-    name: 'Zell Miller Scholarship',
-    amount: '$8,400',
-    status: 'Applied',
-    deadline: 'Sep 30, 2026',
-  },
-  {
-    id: 'scholarship-2',
-    name: 'Coca-Cola Scholars Program',
-    amount: '$20,000',
-    status: 'Researching',
-    deadline: 'Oct 2, 2026',
-  },
-  {
-    id: 'scholarship-3',
-    name: 'Walnut Grove Alumni Award',
-    amount: '$2,500',
-    status: 'Awarded',
-    deadline: 'Jun 15, 2026',
-  },
-  {
-    id: 'scholarship-4',
-    name: 'Regional Rotary Grant',
-    amount: '$1,000',
-    status: 'Denied',
-    deadline: 'May 1, 2026',
-  },
-]
-
 export type DemoEssay = {
   id: string
   title: string
