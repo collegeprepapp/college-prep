@@ -2,6 +2,7 @@ import { requireAdmin } from '../../access'
 import type { NoteRow } from './notes-tab'
 import type { ApplicationRow } from './schools-tab'
 import type { ScholarshipRow } from './scholarships-tab'
+import type { EssayRow, EssaySchoolOption } from './essays-tab'
 import {
   StudentDetailTabs,
   type ParentLinkRow,
@@ -201,6 +202,43 @@ export default async function StudentDetailPage({
     notes: row.notes ?? '',
   }))
 
+  const { data: essayRows } = await supabase
+    .from('essays')
+    .select(
+      'id, title, prompt, essay_type, college_application_id, content, word_count, updated_at'
+    )
+    .eq('student_id', id)
+    .order('updated_at', { ascending: false })
+
+  // The school link resolves against the college list already fetched above,
+  // so linking an essay costs no extra query.
+  const schoolNameById = new Map(
+    applications.map((application) => [application.id, application.schoolName])
+  )
+
+  const essaySchools: EssaySchoolOption[] = applications.map((application) => ({
+    id: application.id,
+    name: application.schoolName,
+  }))
+
+  const essays: EssayRow[] = (essayRows ?? []).map((row) => ({
+    id: row.id,
+    title: row.title,
+    prompt: row.prompt ?? '',
+    essayType: row.essay_type,
+    collegeApplicationId: row.college_application_id ?? '',
+    schoolName: row.college_application_id
+      ? (schoolNameById.get(row.college_application_id) ?? '')
+      : '',
+    content: row.content,
+    wordCount: row.word_count,
+    updatedAtLabel: new Date(row.updated_at).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    }),
+  }))
+
   // Flattened here rather than passing the Map across the server/client
   // boundary, so the client component gets plain rows it can render directly.
   const parentLinkRows: ParentLinkRow[] = parentLinks.map((link) => ({
@@ -232,6 +270,8 @@ export default async function StudentDetailPage({
         notes={noteRowsForClient}
         applications={applications}
         scholarships={scholarships}
+        essays={essays}
+        essaySchools={essaySchools}
         studentId={student.id}
         viewerProfileId={userId}
         // Everyone who reaches this page is an admin.

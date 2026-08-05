@@ -12,7 +12,12 @@ import {
 } from '@/components/student-form-fields'
 import { EditIconButton } from '@/components/icon-button'
 import { DEMO_TEST_SCORES } from './demo-data'
-import { ActivitiesTab, DocsTab, EssaysTab } from './demo-tabs'
+import { ActivitiesTab, DocsTab } from './demo-tabs'
+import {
+  EssaysTab,
+  type EssayRow,
+  type EssaySchoolOption,
+} from './essays-tab'
 import { ScholarshipsTab, type ScholarshipRow } from './scholarships-tab'
 import { SchoolsTab, type ApplicationRow } from './schools-tab'
 import { NotesTab, type NoteRow } from './notes-tab'
@@ -35,7 +40,6 @@ type Tab = (typeof TABS)[number]
 // Tabs backed by hardcoded demo data rather than the database — see
 // demo-tabs.tsx. Nothing in them reads from or writes to Supabase yet.
 const DEMO_TABS: Record<string, () => React.ReactElement> = {
-  Essays: EssaysTab,
   Activities: ActivitiesTab,
   Docs: DocsTab,
 }
@@ -256,6 +260,8 @@ export function StudentDetailTabs({
   notes,
   applications,
   scholarships,
+  essays,
+  essaySchools,
   studentId,
   viewerProfileId,
   canEdit,
@@ -266,6 +272,8 @@ export function StudentDetailTabs({
   notes: NoteRow[]
   applications: ApplicationRow[]
   scholarships: ScholarshipRow[]
+  essays: EssayRow[]
+  essaySchools: EssaySchoolOption[]
   studentId: string
   viewerProfileId: string
   // Admin, or the student viewing their own record — decided by the page's
@@ -305,6 +313,14 @@ export function StudentDetailTabs({
       <div role="tabpanel" aria-label={activeTab}>
         {activeTab === 'Overview' && (
           <OverviewTab student={student} canEdit={canEdit} />
+        )}
+
+        {activeTab === 'Essays' && (
+          <EssaysTab
+            essays={essays}
+            schools={essaySchools}
+            studentId={studentId}
+          />
         )}
 
         {activeTab === 'Scholarships' && (

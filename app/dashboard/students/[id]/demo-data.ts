@@ -30,31 +30,6 @@ export const DEMO_TEST_SCORES: DemoTestScore[] = [
   { id: 'score-3', test_type: 'SAT', score: 1280, test_date: '2026-03-14' },
 ]
 
-export type DemoEssay = {
-  id: string
-  title: string
-  promptFor: string
-  lastEdited: string
-  wordCount: number
-}
-
-export const DEMO_ESSAYS: DemoEssay[] = [
-  {
-    id: 'essay-1',
-    title: 'The Summer I Rebuilt the Concession Stand',
-    promptFor: 'Common App — Prompt 3: Challenging a belief',
-    lastEdited: 'Jul 30, 2026',
-    wordCount: 612,
-  },
-  {
-    id: 'essay-2',
-    title: 'Why Belmont',
-    promptFor: 'Belmont University — Supplemental',
-    lastEdited: 'Jul 18, 2026',
-    wordCount: 244,
-  },
-]
-
 export type ActivityCategory =
   | 'Volunteer'
   | 'Leadership'

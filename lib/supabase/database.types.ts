@@ -168,6 +168,112 @@ export type Database = {
           },
         ]
       }
+      essay_versions: {
+        Row: {
+          content: string
+          created_at: string
+          essay_id: string
+          id: string
+          saved_by: string | null
+          word_count: number
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          essay_id: string
+          id?: string
+          saved_by?: string | null
+          word_count: number
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          essay_id?: string
+          id?: string
+          saved_by?: string | null
+          word_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "essay_versions_essay_id_fkey"
+            columns: ["essay_id"]
+            isOneToOne: false
+            referencedRelation: "essays"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "essay_versions_saved_by_fkey"
+            columns: ["saved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      essays: {
+        Row: {
+          added_by: string | null
+          college_application_id: string | null
+          content: string
+          created_at: string
+          essay_type: string
+          id: string
+          prompt: string | null
+          student_id: string
+          title: string
+          updated_at: string
+          word_count: number
+        }
+        Insert: {
+          added_by?: string | null
+          college_application_id?: string | null
+          content?: string
+          created_at?: string
+          essay_type?: string
+          id?: string
+          prompt?: string | null
+          student_id: string
+          title: string
+          updated_at?: string
+          word_count?: number
+        }
+        Update: {
+          added_by?: string | null
+          college_application_id?: string | null
+          content?: string
+          created_at?: string
+          essay_type?: string
+          id?: string
+          prompt?: string | null
+          student_id?: string
+          title?: string
+          updated_at?: string
+          word_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "essays_added_by_fkey"
+            columns: ["added_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "essays_college_application_id_fkey"
+            columns: ["college_application_id"]
+            isOneToOne: false
+            referencedRelation: "college_applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "essays_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notes: {
         Row: {
           author_id: string

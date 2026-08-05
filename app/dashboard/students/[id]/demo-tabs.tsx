@@ -5,7 +5,6 @@ import { EditIconButton } from '@/components/icon-button'
 import {
   DEMO_ACTIVITIES,
   DEMO_DOCS,
-  DEMO_ESSAYS,
   type ActivityCategory,
   type DemoDoc,
 } from './demo-data'
@@ -64,40 +63,6 @@ const THEAD_ROW_CLASS =
 const TH_CLASS = 'py-2 pr-4 font-medium'
 const TD_CLASS = 'py-2 pr-4'
 const TR_CLASS = 'border-b border-black/5 dark:border-white/10'
-
-// ---------------------------------------------------------------------------
-// Essays
-// ---------------------------------------------------------------------------
-
-export function EssaysTab() {
-  return (
-    <div className="flex flex-col gap-4">
-      <TabHeader title="Essays" action="New Essay" />
-
-      <ul className="flex flex-col gap-3">
-        {DEMO_ESSAYS.map((essay) => (
-          <li
-            key={essay.id}
-            className="flex items-start justify-between gap-4 rounded-lg border border-black/10 p-4 dark:border-white/15"
-          >
-            <div className="flex flex-col gap-1">
-              <span className="text-sm font-medium">{essay.title}</span>
-              <span className="text-xs opacity-70">{essay.promptFor}</span>
-              <span className="mt-1 text-xs opacity-60">
-                {essay.wordCount} words · last edited {essay.lastEdited}
-              </span>
-            </div>
-
-            {/* Inert, like every other action in this file. */}
-            <span className="shrink-0">
-              <EditIconButton label={`Edit essay: ${essay.title}`} />
-            </span>
-          </li>
-        ))}
-      </ul>
-    </div>
-  )
-}
 
 // ---------------------------------------------------------------------------
 // Activities
